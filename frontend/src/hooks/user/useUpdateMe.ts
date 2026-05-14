@@ -3,12 +3,16 @@ import type { AxiosError } from 'axios';
 import { updateMe } from '../../api/user.api';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useToastStore } from '../../stores/useToastStore';
+import { useLanguageStore } from '../../stores/useLanguageStore';
+import { translations } from '../../i18n/translations';
 import type { UpdateUserRequest } from '../../types/user.types';
 import type { ApiError } from '../../types/common.types';
 
 interface UseUpdateMeOptions {
   onInvalidPassword?: () => void;
 }
+
+const SETTINGS_ONLY_KEYS = new Set(['theme', 'language']);
 
 export function useUpdateMe(options?: UseUpdateMeOptions) {
   const addToast = useToastStore((s) => s.addToast);
@@ -17,8 +21,11 @@ export function useUpdateMe(options?: UseUpdateMeOptions) {
     mutationFn: (data: UpdateUserRequest) => updateMe(data),
     onSuccess: (response, variables) => {
       useAuthStore.setState((state) => ({ ...state, user: response.data }));
-      if (!('theme' in variables) || Object.keys(variables).length > 1) {
-        addToast('수정이 완료되었습니다.', 'success');
+      const changedKeys = Object.keys(variables);
+      const isSettingsOnly = changedKeys.every((k) => SETTINGS_ONLY_KEYS.has(k));
+      if (!isSettingsOnly) {
+        const t = translations[useLanguageStore.getState().language];
+        addToast(t.profile.updateSuccess, 'success');
       }
     },
     onError: (error: AxiosError<ApiError>) => {
@@ -26,7 +33,8 @@ export function useUpdateMe(options?: UseUpdateMeOptions) {
       if (code === 'INVALID_PASSWORD') {
         options?.onInvalidPassword?.();
       } else {
-        const message = error.response?.data?.error?.message ?? '수정에 실패했습니다.';
+        const t = translations[useLanguageStore.getState().language];
+        const message = error.response?.data?.error?.message ?? t.profile.updateFailed;
         addToast(message, 'error');
       }
     },

@@ -1,6 +1,8 @@
 import { TodoCard } from './TodoCard';
 import type { Todo } from '../../types/todo.types';
 import type { Category } from '../../types/category.types';
+import { useLanguageStore } from '../../stores/useLanguageStore';
+import { translations } from '../../i18n/translations';
 
 interface TodoListProps {
   todos: Todo[];
@@ -13,6 +15,9 @@ interface TodoListProps {
 }
 
 export function TodoList({ todos, categories, onToggle, onEdit, onDelete, onClickCard, hasFilter }: TodoListProps) {
+  const language = useLanguageStore((s) => s.language);
+  const t = translations[language];
+
   const emptyStyle: React.CSSProperties = {
     textAlign: 'center',
     padding: 'var(--space-8)',
@@ -27,7 +32,7 @@ export function TodoList({ todos, categories, onToggle, onEdit, onDelete, onClic
   if (todos.length === 0) {
     return (
       <div style={emptyStyle}>
-        {hasFilter ? '조건에 맞는 할일이 없습니다.' : '아직 할일이 없습니다.'}
+        {hasFilter ? t.todo.emptyWithFilter : t.todo.emptyNoFilter}
       </div>
     );
   }

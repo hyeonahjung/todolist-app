@@ -7,6 +7,8 @@ import { useCategories } from '../hooks/categories/useCategories';
 import { useCreateCategory } from '../hooks/categories/useCreateCategory';
 import { useUpdateCategory } from '../hooks/categories/useUpdateCategory';
 import { useDeleteCategory } from '../hooks/categories/useDeleteCategory';
+import { useLanguageStore } from '../stores/useLanguageStore';
+import { translations } from '../i18n/translations';
 import type { Category } from '../types/category.types';
 
 type EditingState = { type: 'create' } | { type: 'edit'; category: Category } | null;
@@ -16,6 +18,8 @@ export function CategoryPage() {
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory();
   const deleteCategory = useDeleteCategory();
+  const language = useLanguageStore((s) => s.language);
+  const t = translations[language];
 
   const [editing, setEditing] = useState<EditingState>(null);
   const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
@@ -84,10 +88,10 @@ export function CategoryPage() {
   return (
     <div style={pageStyle}>
       <div style={headerStyle}>
-        <h1 style={titleStyle}>카테고리 관리</h1>
+        <h1 style={titleStyle}>{t.category.pageTitle}</h1>
         {editing?.type !== 'create' && (
           <button style={addBtnStyle} onClick={() => setEditing({ type: 'create' })}>
-            + 카테고리 추가
+            {t.category.addBtn}
           </button>
         )}
       </div>
@@ -123,7 +127,7 @@ export function CategoryPage() {
           )}
           {(categories ?? []).filter((c) => !c.isDefault).length === 0 && editing?.type !== 'create' && (
             <button style={addFirstBtnStyle} onClick={() => setEditing({ type: 'create' })}>
-              + 첫 카테고리 추가하기
+              {t.category.addFirstBtn}
             </button>
           )}
         </>
@@ -133,9 +137,9 @@ export function CategoryPage() {
         isOpen={!!deletingCategory}
         onClose={() => setDeletingCategory(null)}
         onConfirm={handleDeleteConfirm}
-        title="카테고리 삭제"
-        message={`${deletingCategory?.name ?? ''} 카테고리를 삭제하시겠습니까? 소속 할일은 '일반' 카테고리로 이동됩니다.`}
-        confirmLabel="삭제"
+        title={t.category.deleteTitle}
+        message={t.category.deleteMsg(deletingCategory?.name ?? '')}
+        confirmLabel={t.category.deleteBtn}
         variant="danger"
       />
     </div>

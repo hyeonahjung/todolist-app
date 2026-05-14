@@ -12,6 +12,8 @@ import { useCreateTodo } from '../hooks/todos/useCreateTodo';
 import { useUpdateTodo } from '../hooks/todos/useUpdateTodo';
 import { useDeleteTodo } from '../hooks/todos/useDeleteTodo';
 import { useToggleTodoCompletion } from '../hooks/todos/useToggleTodoCompletion';
+import { useLanguageStore } from '../stores/useLanguageStore';
+import { translations } from '../i18n/translations';
 import type { Todo, TodoFilter, CreateTodoRequest, UpdateTodoRequest } from '../types/todo.types';
 
 const EMPTY_FILTER: TodoFilter = {};
@@ -27,6 +29,9 @@ function hasActiveFilter(filter: TodoFilter): boolean {
 
 export function TodoListPage() {
   const navigate = useNavigate();
+  const language = useLanguageStore((s) => s.language);
+  const t = translations[language];
+
   const [filter, setFilter] = useState<TodoFilter>(EMPTY_FILTER);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
@@ -91,9 +96,9 @@ export function TodoListPage() {
   return (
     <div style={pageStyle}>
       <div style={headerStyle}>
-        <h1 style={titleStyle}>할일 목록</h1>
+        <h1 style={titleStyle}>{t.todo.pageTitle}</h1>
         <button style={addBtnStyle} onClick={() => setIsAddOpen(true)}>
-          + 할일 추가
+          {t.todo.addBtn}
         </button>
       </div>
 
@@ -118,7 +123,7 @@ export function TodoListPage() {
         />
       )}
 
-      <Modal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} title="할일 추가">
+      <Modal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} title={t.todo.addModalTitle}>
         <TodoForm
           categories={categories ?? []}
           onSubmit={handleCreateSubmit}
@@ -127,7 +132,7 @@ export function TodoListPage() {
         />
       </Modal>
 
-      <Modal isOpen={!!editingTodo} onClose={() => setEditingTodo(null)} title="할일 수정">
+      <Modal isOpen={!!editingTodo} onClose={() => setEditingTodo(null)} title={t.todo.editModalTitle}>
         {editingTodo && (
           <TodoForm
             initialData={editingTodo}
@@ -143,9 +148,9 @@ export function TodoListPage() {
         isOpen={!!deletingTodo}
         onClose={() => setDeletingTodo(null)}
         onConfirm={handleDeleteConfirm}
-        title="할일 삭제"
-        message={`"${deletingTodo?.title ?? ''}" 할일을 삭제하시겠습니까?`}
-        confirmLabel="삭제"
+        title={t.todo.deleteModalTitle}
+        message={t.todo.deleteConfirmMsg(deletingTodo?.title ?? '')}
+        confirmLabel={t.todo.deleteBtn}
         variant="danger"
       />
     </div>

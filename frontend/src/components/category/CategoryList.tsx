@@ -1,4 +1,6 @@
 import type { Category } from '../../types/category.types';
+import { useLanguageStore } from '../../stores/useLanguageStore';
+import { translations } from '../../i18n/translations';
 
 interface CategoryListProps {
   categories: Category[];
@@ -7,6 +9,9 @@ interface CategoryListProps {
 }
 
 export function CategoryList({ categories, onEdit, onDelete }: CategoryListProps) {
+  const language = useLanguageStore((s) => s.language);
+  const t = translations[language];
+
   const defaultCategories = categories.filter((c) => c.isDefault);
   const customCategories = categories.filter((c) => !c.isDefault);
 
@@ -89,20 +94,20 @@ export function CategoryList({ categories, onEdit, onDelete }: CategoryListProps
   return (
     <div>
       <section style={{ marginBottom: 'var(--space-6)' }}>
-        <h2 style={sectionTitleStyle}>기본 카테고리</h2>
+        <h2 style={sectionTitleStyle}>{t.categoryList.defaultSection}</h2>
         {defaultCategories.map((category) => (
           <div key={category.categoryId} style={defaultItemStyle}>
-            <span style={systemBadgeStyle}>시스템</span>
+            <span style={systemBadgeStyle}>{t.categoryList.systemBadge}</span>
             <span style={defaultNameStyle}>{category.name}</span>
-            <span style={defaultHintStyle}>기본 카테고리 — 수정/삭제 불가</span>
+            <span style={defaultHintStyle}>{t.categoryList.defaultHint}</span>
           </div>
         ))}
       </section>
 
       <section>
-        <h2 style={sectionTitleStyle}>사용자 정의 카테고리</h2>
+        <h2 style={sectionTitleStyle}>{t.categoryList.customSection}</h2>
         {customCategories.length === 0 ? (
-          <p style={emptyStyle}>사용자 정의 카테고리가 없습니다.</p>
+          <p style={emptyStyle}>{t.categoryList.noCustom}</p>
         ) : (
           customCategories.map((category) => (
             <div key={category.categoryId} style={customItemStyle}>
@@ -110,16 +115,16 @@ export function CategoryList({ categories, onEdit, onDelete }: CategoryListProps
               <button
                 style={ghostBtnStyle}
                 onClick={() => onEdit(category)}
-                aria-label={`${category.name} 수정`}
+                aria-label={`${category.name} ${t.categoryList.edit}`}
               >
-                수정
+                {t.categoryList.edit}
               </button>
               <button
                 style={deleteBtnStyle}
                 onClick={() => onDelete(category)}
-                aria-label={`${category.name} 삭제`}
+                aria-label={`${category.name} ${t.categoryList.delete}`}
               >
-                삭제
+                {t.categoryList.delete}
               </button>
             </div>
           ))

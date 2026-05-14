@@ -42,7 +42,7 @@ async function login({ email, password }) {
   return {
     accessToken,
     refreshToken,
-    user: { userId: user.user_id, email: user.email, name: user.name, theme: user.theme, createdAt: user.created_at },
+    user: { userId: user.user_id, email: user.email, name: user.name, theme: user.theme, language: user.language, createdAt: user.created_at },
   };
 }
 

@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useLanguageStore } from '../../stores/useLanguageStore';
+import { translations } from '../../i18n/translations';
 
 interface CategoryFormProps {
   initialName?: string;
@@ -10,15 +12,17 @@ interface CategoryFormProps {
 export function CategoryForm({ initialName = '', onSubmit, onCancel, isLoading }: CategoryFormProps) {
   const [name, setName] = useState(initialName);
   const [error, setError] = useState('');
+  const language = useLanguageStore((s) => s.language);
+  const t = translations[language];
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (name.trim().length === 0) {
-      setError('카테고리명을 입력해 주세요.');
+      setError(t.categoryForm.required);
       return;
     }
     if (name.trim().length > 30) {
-      setError('카테고리명은 30자 이하여야 합니다.');
+      setError(t.categoryForm.tooLong);
       return;
     }
     setError('');
@@ -29,7 +33,7 @@ export function CategoryForm({ initialName = '', onSubmit, onCancel, isLoading }
     const value = e.target.value;
     setName(value);
     if (value.trim().length > 30) {
-      setError('카테고리명은 30자 이하여야 합니다.');
+      setError(t.categoryForm.tooLong);
     } else {
       setError('');
     }
@@ -96,16 +100,16 @@ export function CategoryForm({ initialName = '', onSubmit, onCancel, isLoading }
           type="text"
           value={name}
           onChange={handleChange}
-          placeholder="카테고리명 입력 (최대 30자)"
+          placeholder={t.categoryForm.placeholder}
           maxLength={31}
           autoFocus
-          aria-label="카테고리명"
+          aria-label={t.categoryForm.placeholder}
         />
         <button type="button" style={cancelBtnStyle} onClick={onCancel} disabled={isLoading}>
-          취소
+          {t.categoryForm.cancel}
         </button>
         <button type="submit" style={saveBtnStyle} disabled={isLoading}>
-          저장
+          {t.categoryForm.save}
         </button>
       </div>
       {error && <span style={errorStyle}>{error}</span>}

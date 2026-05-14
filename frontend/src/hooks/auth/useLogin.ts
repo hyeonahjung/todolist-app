@@ -4,6 +4,8 @@ import type { AxiosError } from 'axios';
 import { login } from '../../api/auth.api';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useToastStore } from '../../stores/useToastStore';
+import { useLanguageStore } from '../../stores/useLanguageStore';
+import { translations } from '../../i18n/translations';
 import type { ApiError } from '../../types/common.types';
 
 interface LoginFormData {
@@ -24,12 +26,12 @@ export function useLogin() {
       navigate('/');
     },
     onError: (error: AxiosError<ApiError>) => {
+      const t = translations[useLanguageStore.getState().language];
       const code = error.response?.data?.error?.code;
       if (code === 'UNAUTHORIZED') {
-        addToast('이메일 또는 비밀번호가 올바르지 않습니다.', 'error');
+        addToast(t.toast.loginError, 'error');
       } else {
-        const message =
-          error.response?.data?.error?.message ?? '로그인에 실패했습니다.';
+        const message = error.response?.data?.error?.message ?? t.toast.loginFailed;
         addToast(message, 'error');
       }
     },

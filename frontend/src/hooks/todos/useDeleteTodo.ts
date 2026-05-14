@@ -2,6 +2,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import { deleteTodo } from '../../api/todo.api';
 import { useToastStore } from '../../stores/useToastStore';
+import { useLanguageStore } from '../../stores/useLanguageStore';
+import { translations } from '../../i18n/translations';
 import type { ApiError } from '../../types/common.types';
 
 export function useDeleteTodo() {
@@ -12,10 +14,12 @@ export function useDeleteTodo() {
     mutationFn: (todoId: number) => deleteTodo(todoId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todos'] });
-      addToast('할일이 삭제되었습니다.', 'success');
+      const t = translations[useLanguageStore.getState().language];
+      addToast(t.toast.todoDeleted, 'success');
     },
     onError: (error: AxiosError<ApiError>) => {
-      const message = error.response?.data?.error?.message ?? '할일 삭제에 실패했습니다.';
+      const t = translations[useLanguageStore.getState().language];
+      const message = error.response?.data?.error?.message ?? t.toast.todoDeleteFailed;
       addToast(message, 'error');
     },
   });

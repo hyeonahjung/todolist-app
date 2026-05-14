@@ -4,25 +4,16 @@ import { useMe } from '../hooks/user/useMe';
 import { useUpdateMe } from '../hooks/user/useUpdateMe';
 import { useDeleteMe } from '../hooks/user/useDeleteMe';
 import { Modal } from '../components/common/Modal';
+import { useLanguageStore } from '../stores/useLanguageStore';
+import { translations } from '../i18n/translations';
 
 const PASSWORD_REGEX = /^(?=.*[a-zA-Z])(?=.*\d).{8,64}$/;
-
-function validateName(value: string): string {
-  if (!value.trim()) return '이름을 입력해주세요.';
-  if (value.trim().length > 50) return '이름은 50자 이하여야 합니다.';
-  return '';
-}
-
-function validateNewPassword(value: string): string {
-  if (!value) return '';
-  if (!PASSWORD_REGEX.test(value))
-    return '비밀번호는 8자 이상, 영문자와 숫자를 각 1자 이상 포함해야 합니다.';
-  return '';
-}
 
 export function ProfilePage() {
   const navigate = useNavigate();
   const { data: user, isLoading } = useMe();
+  const language = useLanguageStore((s) => s.language);
+  const t = translations[language];
 
   const [name, setName] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
@@ -42,11 +33,23 @@ export function ProfilePage() {
 
   const updateMutation = useUpdateMe({
     onInvalidPassword: () => {
-      setCurrentPasswordError('현재 비밀번호가 올바르지 않습니다.');
+      setCurrentPasswordError(t.profile.currentPasswordInvalid);
     },
   });
 
   const deleteMutation = useDeleteMe();
+
+  function validateName(value: string): string {
+    if (!value.trim()) return t.profile.nameRequiredError;
+    if (value.trim().length > 50) return t.profile.nameTooLong;
+    return '';
+  }
+
+  function validateNewPassword(value: string): string {
+    if (!value) return '';
+    if (!PASSWORD_REGEX.test(value)) return t.profile.newPasswordInvalid;
+    return '';
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -61,11 +64,11 @@ export function ProfilePage() {
 
     const isChangingPassword = currentPassword !== '' && newPassword !== '';
     if (newPassword && !currentPassword) {
-      setCurrentPasswordError('현재 비밀번호를 입력해주세요.');
+      setCurrentPasswordError(t.profile.currentPasswordRequired);
       return;
     }
     if (currentPassword && !newPassword) {
-      setNewPasswordError('새 비밀번호를 입력해주세요.');
+      setNewPasswordError(t.profile.newPasswordRequired);
       return;
     }
 
@@ -275,7 +278,7 @@ export function ProfilePage() {
     return (
       <div style={pageStyle}>
         <div style={cardStyle}>
-          <p style={{ color: 'var(--color-text-secondary)' }}>불러오는 중...</p>
+          <p style={{ color: 'var(--color-text-secondary)' }}>{t.profile.loading}</p>
         </div>
       </div>
     );
@@ -284,12 +287,12 @@ export function ProfilePage() {
   return (
     <div style={pageStyle}>
       <div style={cardStyle}>
-        <h1 style={headingStyle}>개인정보 수정</h1>
+        <h1 style={headingStyle}>{t.profile.pageTitle}</h1>
 
         <form onSubmit={handleSubmit} noValidate>
           <div style={fieldStyle}>
             <label htmlFor="profile-name" style={labelStyle}>
-              이름 (name) <span style={{ color: 'var(--color-error)' }}>*필수</span>
+              {t.profile.nameLabel} <span style={{ color: 'var(--color-error)' }}>{t.profile.nameRequired}</span>
             </label>
             <input
               id="profile-name"
@@ -305,12 +308,12 @@ export function ProfilePage() {
             {nameError ? (
               <p style={errorStyle} role="alert">{nameError}</p>
             ) : (
-              <p style={hintStyle}>최소 1자, 최대 50자</p>
+              <p style={hintStyle}>{t.profile.nameHint}</p>
             )}
           </div>
 
           <div style={fieldStyle}>
-            <label htmlFor="profile-email" style={labelStyle}>이메일 (email)</label>
+            <label htmlFor="profile-email" style={labelStyle}>{t.profile.emailLabel}</label>
             <input
               id="profile-email"
               type="email"
@@ -322,10 +325,10 @@ export function ProfilePage() {
 
           <hr style={dividerStyle} />
 
-          <p style={sectionLabelStyle}>--- 비밀번호 변경 (선택사항) ---</p>
+          <p style={sectionLabelStyle}>{t.profile.passwordSection}</p>
 
           <div style={fieldStyle}>
-            <label htmlFor="profile-current-password" style={labelStyle}>현재 비밀번호</label>
+            <label htmlFor="profile-current-password" style={labelStyle}>{t.profile.currentPasswordLabel}</label>
             <input
               id="profile-current-password"
               type="password"
@@ -343,7 +346,7 @@ export function ProfilePage() {
           </div>
 
           <div style={fieldStyle}>
-            <label htmlFor="profile-new-password" style={labelStyle}>새 비밀번호</label>
+            <label htmlFor="profile-new-password" style={labelStyle}>{t.profile.newPasswordLabel}</label>
             <input
               id="profile-new-password"
               type="password"
@@ -358,20 +361,18 @@ export function ProfilePage() {
             {newPasswordError ? (
               <p style={errorStyle} role="alert">{newPasswordError}</p>
             ) : (
-              <p style={hintStyle}>영문자·숫자 각 1자 이상, 8~64자</p>
+              <p style={hintStyle}>{t.profile.newPasswordHint}</p>
             )}
           </div>
 
-          <p style={noteStyle}>
-            ※ 비밀번호 변경을 원하지 않으면 비워두세요.
-          </p>
+          <p style={noteStyle}>{t.profile.passwordNote}</p>
 
           <div style={actionsStyle}>
             <button type="button" style={cancelBtnStyle} onClick={handleCancel}>
-              취소
+              {t.profile.cancel}
             </button>
             <button type="submit" style={saveBtnStyle} disabled={updateMutation.isPending}>
-              {updateMutation.isPending ? '저장 중...' : '저장하기'}
+              {updateMutation.isPending ? t.profile.saving : t.profile.save}
             </button>
           </div>
         </form>
@@ -382,17 +383,15 @@ export function ProfilePage() {
             style={deleteBtnStyle}
             onClick={() => setDeleteDialogOpen(true)}
           >
-            회원 탈퇴
+            {t.profile.deleteAccount}
           </button>
         </div>
       </div>
 
-      <Modal isOpen={deleteDialogOpen} onClose={handleDeleteDialogClose} title="회원 탈퇴">
-        <p style={dialogWarningStyle}>
-          주의: 탈퇴 시 내 계정, 카테고리, 할일이 즉시 삭제되며 복구할 수 없습니다.
-        </p>
+      <Modal isOpen={deleteDialogOpen} onClose={handleDeleteDialogClose} title={t.profile.deleteModalTitle}>
+        <p style={dialogWarningStyle}>{t.profile.deleteWarning}</p>
         <label htmlFor="delete-password" style={dialogLabelStyle}>
-          비밀번호를 입력하세요:
+          {t.profile.deletePasswordLabel}
         </label>
         <input
           id="delete-password"
@@ -404,7 +403,7 @@ export function ProfilePage() {
         />
         <div style={dialogActionsStyle}>
           <button type="button" style={dialogCancelBtnStyle} onClick={handleDeleteDialogClose}>
-            취소
+            {t.profile.deleteCancel}
           </button>
           <button
             type="button"
@@ -412,7 +411,7 @@ export function ProfilePage() {
             onClick={handleDeleteConfirm}
             disabled={deleteMutation.isPending}
           >
-            {deleteMutation.isPending ? '처리 중...' : '탈퇴 확인'}
+            {deleteMutation.isPending ? t.profile.deletePending : t.profile.deleteConfirm}
           </button>
         </div>
       </Modal>

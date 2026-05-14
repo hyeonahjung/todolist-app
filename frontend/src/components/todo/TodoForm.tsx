@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import type { Todo, CreateTodoRequest, UpdateTodoRequest } from '../../types/todo.types';
 import type { Category } from '../../types/category.types';
+import { useLanguageStore } from '../../stores/useLanguageStore';
+import { translations } from '../../i18n/translations';
 
 interface TodoFormProps {
   initialData?: Todo;
@@ -23,6 +25,8 @@ export function TodoForm({ initialData, categories, onSubmit, onCancel, isLoadin
   const [description, setDescription] = useState(initialData?.description ?? '');
   const [dueDate, setDueDate] = useState(initialData?.dueDate ?? '');
   const [errors, setErrors] = useState<FormErrors>({});
+  const language = useLanguageStore((s) => s.language);
+  const t = translations[language];
 
   const isEditMode = !!initialData;
   const today = new Date().toISOString().split('T')[0];
@@ -31,21 +35,21 @@ export function TodoForm({ initialData, categories, onSubmit, onCancel, isLoadin
     const newErrors: FormErrors = {};
 
     if (!title.trim()) {
-      newErrors.title = '제목을 입력해 주세요.';
+      newErrors.title = t.todoForm.titleRequired;
     } else if (title.length > 100) {
-      newErrors.title = '제목은 100자 이하여야 합니다.';
+      newErrors.title = t.todoForm.titleTooLong;
     }
 
     if (!categoryId) {
-      newErrors.categoryId = '카테고리를 선택해 주세요.';
+      newErrors.categoryId = t.todoForm.categoryRequired;
     }
 
     if (description.length > 1000) {
-      newErrors.description = '설명은 1,000자 이하여야 합니다.';
+      newErrors.description = t.todoForm.descriptionTooLong;
     }
 
     if (dueDate && dueDate < today) {
-      newErrors.dueDate = '종료예정일은 오늘 이후 날짜여야 합니다.';
+      newErrors.dueDate = t.todoForm.dueDateInvalid;
     }
 
     setErrors(newErrors);
@@ -133,7 +137,7 @@ export function TodoForm({ initialData, categories, onSubmit, onCancel, isLoadin
   return (
     <form onSubmit={handleSubmit} noValidate>
       <div style={fieldStyle}>
-        <label htmlFor="todo-title" style={labelStyle}>제목 *</label>
+        <label htmlFor="todo-title" style={labelStyle}>{t.todoForm.titleLabel}</label>
         <input
           id="todo-title"
           type="text"
@@ -141,22 +145,22 @@ export function TodoForm({ initialData, categories, onSubmit, onCancel, isLoadin
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           maxLength={100}
-          placeholder="할일 제목을 입력하세요"
-          aria-label="제목"
+          placeholder={t.todoForm.titlePlaceholder}
+          aria-label={t.todoForm.titleLabel}
         />
         {errors.title && <p style={errorStyle}>{errors.title}</p>}
       </div>
 
       <div style={fieldStyle}>
-        <label htmlFor="todo-category" style={labelStyle}>카테고리 *</label>
+        <label htmlFor="todo-category" style={labelStyle}>{t.todoForm.categoryLabel}</label>
         <select
           id="todo-category"
           style={inputStyle}
           value={categoryId}
           onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : '')}
-          aria-label="카테고리"
+          aria-label={t.todoForm.categoryLabel}
         >
-          <option value="">카테고리 선택</option>
+          <option value="">{t.todoForm.categoryPlaceholder}</option>
           {categories.map((c) => (
             <option key={c.categoryId} value={c.categoryId}>{c.name}</option>
           ))}
@@ -165,21 +169,21 @@ export function TodoForm({ initialData, categories, onSubmit, onCancel, isLoadin
       </div>
 
       <div style={fieldStyle}>
-        <label htmlFor="todo-description" style={labelStyle}>설명</label>
+        <label htmlFor="todo-description" style={labelStyle}>{t.todoForm.descriptionLabel}</label>
         <textarea
           id="todo-description"
           style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           maxLength={1000}
-          placeholder="설명을 입력하세요 (선택)"
-          aria-label="설명"
+          placeholder={t.todoForm.descriptionPlaceholder}
+          aria-label={t.todoForm.descriptionLabel}
         />
         {errors.description && <p style={errorStyle}>{errors.description}</p>}
       </div>
 
       <div style={fieldStyle}>
-        <label htmlFor="todo-due-date" style={labelStyle}>종료예정일</label>
+        <label htmlFor="todo-due-date" style={labelStyle}>{t.todoForm.dueDateLabel}</label>
         <input
           id="todo-due-date"
           type="date"
@@ -187,17 +191,17 @@ export function TodoForm({ initialData, categories, onSubmit, onCancel, isLoadin
           value={dueDate}
           min={today}
           onChange={(e) => setDueDate(e.target.value)}
-          aria-label="종료예정일"
+          aria-label={t.todoForm.dueDateLabel}
         />
         {errors.dueDate && <p style={errorStyle}>{errors.dueDate}</p>}
       </div>
 
       <div style={actionsStyle}>
         <button type="button" style={cancelBtnStyle} onClick={onCancel} disabled={isLoading}>
-          취소
+          {t.todoForm.cancel}
         </button>
         <button type="submit" style={submitBtnStyle} disabled={isLoading}>
-          {isLoading ? '처리 중...' : isEditMode ? '저장하기' : '등록하기'}
+          {isLoading ? t.todoForm.pending : isEditMode ? t.todoForm.save : t.todoForm.create}
         </button>
       </div>
     </form>

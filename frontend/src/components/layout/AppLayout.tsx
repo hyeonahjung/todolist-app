@@ -3,6 +3,9 @@ import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { Menu, X, Sun, Moon } from 'lucide-react';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useUpdateMe } from '../../hooks/user/useUpdateMe';
+import { useLanguageStore } from '../../stores/useLanguageStore';
+import { translations } from '../../i18n/translations';
+import { LanguageSelector } from '../common/LanguageSelector';
 
 export function AppLayout() {
   const navigate = useNavigate();
@@ -10,6 +13,8 @@ export function AppLayout() {
   const clearAuth = useAuthStore((s) => s.clearAuth);
   const [menuOpen, setMenuOpen] = useState(false);
   const updateMe = useUpdateMe();
+  const language = useLanguageStore((s) => s.language);
+  const t = translations[language];
 
   function handleLogout() {
     clearAuth();
@@ -112,18 +117,19 @@ export function AppLayout() {
       <header style={headerStyle}>
         <Link to="/" style={logoStyle}>TodoListApp</Link>
         <nav className="app-nav" style={navStyle}>
-          <Link to="/" style={navLinkStyle}>할일 목록</Link>
-          <Link to="/categories" style={navLinkStyle}>카테고리</Link>
+          <Link to="/" style={navLinkStyle}>{t.nav.todoList}</Link>
+          <Link to="/categories" style={navLinkStyle}>{t.nav.categories}</Link>
           <Link to="/profile" style={userNameStyle}>{user?.name ?? ''}</Link>
+          <LanguageSelector />
           <button
             style={themeBtnStyle}
             onClick={handleThemeToggle}
-            aria-label={user?.theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
-            title={user?.theme === 'dark' ? '라이트 모드' : '다크 모드'}
+            aria-label={user?.theme === 'dark' ? t.nav.lightMode : t.nav.darkMode}
+            title={user?.theme === 'dark' ? t.nav.lightMode : t.nav.darkMode}
           >
             {user?.theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
           </button>
-          <button style={logoutBtnStyle} onClick={handleLogout}>로그아웃</button>
+          <button style={logoutBtnStyle} onClick={handleLogout}>{t.nav.logout}</button>
         </nav>
         <button
           className="app-hamburger"
@@ -135,18 +141,19 @@ export function AppLayout() {
         </button>
       </header>
       <div style={mobileNavStyle}>
-        <Link to="/" style={navLinkStyle} onClick={() => setMenuOpen(false)}>할일 목록</Link>
-        <Link to="/categories" style={navLinkStyle} onClick={() => setMenuOpen(false)}>카테고리</Link>
+        <Link to="/" style={navLinkStyle} onClick={() => setMenuOpen(false)}>{t.nav.todoList}</Link>
+        <Link to="/categories" style={navLinkStyle} onClick={() => setMenuOpen(false)}>{t.nav.categories}</Link>
         <Link to="/profile" style={navLinkStyle} onClick={() => setMenuOpen(false)}>{user?.name ?? ''}</Link>
         <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
+          <LanguageSelector />
           <button
             style={themeBtnStyle}
             onClick={handleThemeToggle}
-            aria-label={user?.theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
+            aria-label={user?.theme === 'dark' ? t.nav.lightMode : t.nav.darkMode}
           >
             {user?.theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
           </button>
-          <button style={logoutBtnStyle} onClick={handleLogout}>로그아웃</button>
+          <button style={logoutBtnStyle} onClick={handleLogout}>{t.nav.logout}</button>
         </div>
       </div>
       <main>

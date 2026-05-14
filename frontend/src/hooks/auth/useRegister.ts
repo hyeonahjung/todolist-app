@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import type { AxiosError } from 'axios';
 import { register } from '../../api/auth.api';
 import { useToastStore } from '../../stores/useToastStore';
+import { useLanguageStore } from '../../stores/useLanguageStore';
+import { translations } from '../../i18n/translations';
 import type { ApiError } from '../../types/common.types';
 
 interface RegisterFormData {
@@ -18,12 +20,13 @@ export function useRegister() {
   return useMutation({
     mutationFn: (data: RegisterFormData) => register(data),
     onSuccess: () => {
-      addToast('회원가입이 완료되었습니다.', 'success');
+      const t = translations[useLanguageStore.getState().language];
+      addToast(t.toast.registerSuccess, 'success');
       navigate('/auth');
     },
     onError: (error: AxiosError<ApiError>) => {
-      const message =
-        error.response?.data?.error?.message ?? '회원가입에 실패했습니다.';
+      const t = translations[useLanguageStore.getState().language];
+      const message = error.response?.data?.error?.message ?? t.toast.registerFailed;
       addToast(message, 'error');
     },
   });

@@ -2,6 +2,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import { updateTodo } from '../../api/todo.api';
 import { useToastStore } from '../../stores/useToastStore';
+import { useLanguageStore } from '../../stores/useLanguageStore';
+import { translations } from '../../i18n/translations';
 import type { UpdateTodoRequest } from '../../types/todo.types';
 import type { ApiError } from '../../types/common.types';
 
@@ -18,10 +20,12 @@ export function useUpdateTodo() {
     mutationFn: ({ todoId, data }: UpdateTodoParams) => updateTodo(todoId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todos'] });
-      addToast('할일이 수정되었습니다.', 'success');
+      const t = translations[useLanguageStore.getState().language];
+      addToast(t.toast.todoUpdated, 'success');
     },
     onError: (error: AxiosError<ApiError>) => {
-      const message = error.response?.data?.error?.message ?? '할일 수정에 실패했습니다.';
+      const t = translations[useLanguageStore.getState().language];
+      const message = error.response?.data?.error?.message ?? t.toast.todoUpdateFailed;
       addToast(message, 'error');
     },
   });

@@ -6,6 +6,7 @@ import { RouterProvider } from 'react-router-dom';
 import { router } from './router';
 import { Toast } from './components/common/Toast';
 import { ThemeSync } from './components/common/ThemeSync';
+import { LanguageSync } from './components/common/LanguageSync';
 import './index.css';
 
 const queryClient = new QueryClient({
@@ -24,6 +25,7 @@ createRoot(document.getElementById('root')!).render(
       <RouterProvider router={router} />
       <Toast />
       <ThemeSync />
+      <LanguageSync />
       {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
   </StrictMode>

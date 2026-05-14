@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import type { Category } from '../../types/category.types';
 import type { TodoFilter } from '../../types/todo.types';
+import { useLanguageStore } from '../../stores/useLanguageStore';
+import { translations } from '../../i18n/translations';
 
 interface FilterBarProps {
   filter: TodoFilter;
@@ -11,6 +13,8 @@ interface FilterBarProps {
 
 export function FilterBar({ filter, categories, onChange, onReset }: FilterBarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const language = useLanguageStore((s) => s.language);
+  const t = translations[language];
 
   const selectStyle: React.CSSProperties = {
     border: '1px solid var(--color-border)',
@@ -97,16 +101,16 @@ export function FilterBar({ filter, categories, onChange, onReset }: FilterBarPr
         onClick={() => setMobileOpen((v) => !v)}
         aria-expanded={mobileOpen}
       >
-        필터 {mobileOpen ? '닫기' : '열기'}
+        {t.filter.filter} {mobileOpen ? t.filter.close : t.filter.open}
       </button>
       <div className={`filter-panel${mobileOpen ? ' open' : ''}`} style={filterPanelStyle}>
         <select
           style={selectStyle}
           value={filter.categoryId ?? ''}
           onChange={(e) => handleCategoryChange(e.target.value)}
-          aria-label="카테고리 필터"
+          aria-label={t.filter.allCategories}
         >
-          <option value="">전체 카테고리</option>
+          <option value="">{t.filter.allCategories}</option>
           {categories.map((c) => (
             <option key={c.categoryId} value={c.categoryId}>{c.name}</option>
           ))}
@@ -116,11 +120,11 @@ export function FilterBar({ filter, categories, onChange, onReset }: FilterBarPr
           style={selectStyle}
           value={completionValue}
           onChange={(e) => handleCompletionChange(e.target.value)}
-          aria-label="완료 여부 필터"
+          aria-label={t.filter.all}
         >
-          <option value="">전체</option>
-          <option value="false">미완료</option>
-          <option value="true">완료</option>
+          <option value="">{t.filter.all}</option>
+          <option value="false">{t.filter.incomplete}</option>
+          <option value="true">{t.filter.complete}</option>
         </select>
 
         <input
@@ -139,7 +143,7 @@ export function FilterBar({ filter, categories, onChange, onReset }: FilterBarPr
           aria-label="종료 날짜"
         />
 
-        <button style={resetBtnStyle} onClick={onReset}>필터 초기화</button>
+        <button style={resetBtnStyle} onClick={onReset}>{t.filter.reset}</button>
       </div>
     </>
   );

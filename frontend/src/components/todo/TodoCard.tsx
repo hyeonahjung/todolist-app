@@ -1,4 +1,6 @@
 import type { Todo } from '../../types/todo.types';
+import { useLanguageStore } from '../../stores/useLanguageStore';
+import { translations } from '../../i18n/translations';
 
 interface TodoCardProps {
   todo: Todo;
@@ -20,6 +22,8 @@ function isNearDue(dueDate: string | null): boolean {
 
 export function TodoCard({ todo, categoryName, onToggle, onEdit, onDelete, onClick }: TodoCardProps) {
   const nearDue = isNearDue(todo.dueDate);
+  const language = useLanguageStore((s) => s.language);
+  const t = translations[language];
 
   const cardStyle: React.CSSProperties = {
     minHeight: '56px',
@@ -122,7 +126,7 @@ export function TodoCard({ todo, categoryName, onToggle, onEdit, onDelete, onCli
       <button
         style={checkboxStyle}
         onClick={(e) => { e.stopPropagation(); onToggle(todo.todoId); }}
-        aria-label={todo.isCompleted ? '완료 취소' : '완료 처리'}
+        aria-label={todo.isCompleted ? t.todo.uncomplete : t.todo.complete}
       >
         {todo.isCompleted && '✓'}
       </button>
@@ -151,16 +155,16 @@ export function TodoCard({ todo, categoryName, onToggle, onEdit, onDelete, onCli
           <button
             style={actionBtnStyle}
             onClick={(e) => { e.stopPropagation(); onEdit(todo); }}
-            aria-label="수정"
+            aria-label={t.todo.edit}
           >
-            수정
+            {t.todo.edit}
           </button>
           <button
             style={{ ...actionBtnStyle, color: 'var(--color-error)' }}
             onClick={(e) => { e.stopPropagation(); onDelete(todo); }}
-            aria-label="삭제"
+            aria-label={t.todo.delete}
           >
-            삭제
+            {t.todo.delete}
           </button>
         </div>
       </div>

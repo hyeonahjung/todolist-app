@@ -4,6 +4,8 @@ import type { AxiosError } from 'axios';
 import { deleteMe } from '../../api/user.api';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useToastStore } from '../../stores/useToastStore';
+import { useLanguageStore } from '../../stores/useLanguageStore';
+import { translations } from '../../i18n/translations';
 import type { DeleteUserRequest } from '../../types/user.types';
 import type { ApiError } from '../../types/common.types';
 
@@ -19,11 +21,12 @@ export function useDeleteMe() {
       navigate('/auth');
     },
     onError: (error: AxiosError<ApiError>) => {
+      const t = translations[useLanguageStore.getState().language];
       const code = error.response?.data?.error?.code;
       if (code === 'INVALID_PASSWORD') {
-        addToast('현재 비밀번호가 올바르지 않습니다.', 'error');
+        addToast(t.toast.deleteAccountPasswordError, 'error');
       } else {
-        const message = error.response?.data?.error?.message ?? '회원 탈퇴에 실패했습니다.';
+        const message = error.response?.data?.error?.message ?? t.toast.deleteAccountError;
         addToast(message, 'error');
       }
     },

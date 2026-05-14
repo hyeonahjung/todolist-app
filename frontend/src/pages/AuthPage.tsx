@@ -3,32 +3,18 @@ import { useLogin } from '../hooks/auth/useLogin';
 import { useRegister } from '../hooks/auth/useRegister';
 import type { AxiosError } from 'axios';
 import type { ApiError } from '../types/common.types';
+import { useLanguageStore } from '../stores/useLanguageStore';
+import { translations } from '../i18n/translations';
 
 type Tab = 'login' | 'register';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_REGEX = /^(?=.*[a-zA-Z])(?=.*\d).{8,}$/;
 
-function validateEmail(value: string): string {
-  if (!value) return '이메일을 입력해주세요.';
-  if (!EMAIL_REGEX.test(value)) return '올바른 이메일 형식이 아닙니다.';
-  return '';
-}
-
-function validatePassword(value: string): string {
-  if (!value) return '비밀번호를 입력해주세요.';
-  if (!PASSWORD_REGEX.test(value))
-    return '비밀번호는 8자 이상, 영문자와 숫자를 각 1자 이상 포함해야 합니다.';
-  return '';
-}
-
-function validateName(value: string): string {
-  if (!value.trim()) return '이름을 입력해주세요.';
-  if (value.trim().length > 50) return '이름은 50자 이하여야 합니다.';
-  return '';
-}
-
 export function AuthPage() {
+  const language = useLanguageStore((s) => s.language);
+  const t = translations[language];
+
   const [tab, setTab] = useState<Tab>('login');
 
   const [loginEmail, setLoginEmail] = useState('');
@@ -43,6 +29,24 @@ export function AuthPage() {
 
   const loginMutation = useLogin();
   const registerMutation = useRegister();
+
+  function validateEmail(value: string): string {
+    if (!value) return t.auth.emailRequired;
+    if (!EMAIL_REGEX.test(value)) return t.auth.emailInvalid;
+    return '';
+  }
+
+  function validatePassword(value: string): string {
+    if (!value) return t.auth.passwordRequired;
+    if (!PASSWORD_REGEX.test(value)) return t.auth.passwordInvalid;
+    return '';
+  }
+
+  function validateName(value: string): string {
+    if (!value.trim()) return t.auth.nameRequired;
+    if (value.trim().length > 50) return t.auth.nameTooLong;
+    return '';
+  }
 
   function handleLoginSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -69,7 +73,7 @@ export function AuthPage() {
           const axiosError = error as AxiosError<ApiError>;
           const code = axiosError.response?.data?.error?.code;
           if (code === 'DUPLICATE_EMAIL') {
-            setDuplicateEmailError('이미 사용 중인 이메일입니다.');
+            setDuplicateEmailError(t.auth.duplicateEmail);
           }
         },
       },
@@ -81,12 +85,12 @@ export function AuthPage() {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: 'linear-gradient(135deg, #E8F5E9 0%, #F1F8E9 100%)',
+    background: 'linear-gradient(135deg, var(--color-bg-body-start) 0%, var(--color-bg-body-end) 100%)',
     padding: 'var(--space-4)',
   };
 
   const cardStyle: React.CSSProperties = {
-    background: 'white',
+    background: 'var(--color-bg-card)',
     borderRadius: 'var(--radius-lg)',
     boxShadow: 'var(--shadow-lg)',
     width: '100%',
@@ -147,6 +151,8 @@ export function AuthPage() {
       fontSize: 'var(--font-size-md)',
       outline: 'none',
       boxSizing: 'border-box',
+      background: 'var(--color-bg-panel)',
+      color: 'var(--color-text-primary)',
     };
   }
 
@@ -190,37 +196,37 @@ export function AuthPage() {
   return (
     <div style={pageStyle}>
       <div style={cardStyle}>
-        <h1 style={titleStyle}>TodoListApp</h1>
+        <h1 style={titleStyle}>{t.auth.title}</h1>
         <div style={tabContainerStyle}>
           <button
             style={tabStyle(tab === 'login')}
             onClick={() => setTab('login')}
             type="button"
-            aria-label="로그인 탭"
+            aria-label={t.auth.loginTab}
           >
-            로그인
+            {t.auth.loginTab}
           </button>
           <button
             style={tabStyle(tab === 'register')}
             onClick={() => setTab('register')}
             type="button"
-            aria-label="회원가입 탭"
+            aria-label={t.auth.registerTab}
           >
-            회원가입
+            {t.auth.registerTab}
           </button>
         </div>
 
         {tab === 'login' && (
           <form onSubmit={handleLoginSubmit} noValidate>
             <div style={fieldStyle}>
-              <label htmlFor="login-email" style={labelStyle}>이메일</label>
+              <label htmlFor="login-email" style={labelStyle}>{t.auth.email}</label>
               <input
                 id="login-email"
                 type="email"
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
                 style={inputStyle(!!loginErrors.email)}
-                placeholder="이메일을 입력하세요"
+                placeholder={t.auth.emailPlaceholder}
                 autoComplete="email"
               />
               {loginErrors.email && (
@@ -228,14 +234,14 @@ export function AuthPage() {
               )}
             </div>
             <div style={fieldStyle}>
-              <label htmlFor="login-password" style={labelStyle}>비밀번호</label>
+              <label htmlFor="login-password" style={labelStyle}>{t.auth.password}</label>
               <input
                 id="login-password"
                 type="password"
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
                 style={inputStyle(!!loginErrors.password)}
-                placeholder="비밀번호를 입력하세요"
+                placeholder={t.auth.passwordPlaceholder}
                 autoComplete="current-password"
               />
               {loginErrors.password && (
@@ -247,16 +253,16 @@ export function AuthPage() {
               style={submitBtnStyle}
               disabled={loginMutation.isPending}
             >
-              {loginMutation.isPending ? '로그인 중...' : '로그인'}
+              {loginMutation.isPending ? t.auth.loginPending : t.auth.loginBtn}
             </button>
             <p style={linkTextStyle}>
-              계정이 없으신가요?{' '}
+              {t.auth.noAccount}{' '}
               <button
                 type="button"
                 style={linkBtnStyle}
                 onClick={() => setTab('register')}
               >
-                회원가입
+                {t.auth.registerTab}
               </button>
             </p>
           </form>
@@ -265,14 +271,14 @@ export function AuthPage() {
         {tab === 'register' && (
           <form onSubmit={handleRegisterSubmit} noValidate>
             <div style={fieldStyle}>
-              <label htmlFor="reg-name" style={labelStyle}>이름</label>
+              <label htmlFor="reg-name" style={labelStyle}>{t.auth.name}</label>
               <input
                 id="reg-name"
                 type="text"
                 value={regName}
                 onChange={(e) => setRegName(e.target.value)}
                 style={inputStyle(!!regErrors.name)}
-                placeholder="이름을 입력하세요"
+                placeholder={t.auth.namePlaceholder}
                 autoComplete="name"
               />
               {regErrors.name && (
@@ -280,7 +286,7 @@ export function AuthPage() {
               )}
             </div>
             <div style={fieldStyle}>
-              <label htmlFor="reg-email" style={labelStyle}>이메일</label>
+              <label htmlFor="reg-email" style={labelStyle}>{t.auth.email}</label>
               <input
                 id="reg-email"
                 type="email"
@@ -290,7 +296,7 @@ export function AuthPage() {
                   setDuplicateEmailError('');
                 }}
                 style={inputStyle(!!regErrors.email || !!duplicateEmailError)}
-                placeholder="이메일을 입력하세요"
+                placeholder={t.auth.emailPlaceholder}
                 autoComplete="email"
               />
               {regErrors.email && (
@@ -301,14 +307,14 @@ export function AuthPage() {
               )}
             </div>
             <div style={fieldStyle}>
-              <label htmlFor="reg-password" style={labelStyle}>비밀번호</label>
+              <label htmlFor="reg-password" style={labelStyle}>{t.auth.password}</label>
               <input
                 id="reg-password"
                 type="password"
                 value={regPassword}
                 onChange={(e) => setRegPassword(e.target.value)}
                 style={inputStyle(!!regErrors.password)}
-                placeholder="8자 이상, 영문자·숫자 포함"
+                placeholder={t.auth.passwordHint}
                 autoComplete="new-password"
               />
               {regErrors.password && (
@@ -320,16 +326,16 @@ export function AuthPage() {
               style={submitBtnStyle}
               disabled={registerMutation.isPending}
             >
-              {registerMutation.isPending ? '처리 중...' : '가입하기'}
+              {registerMutation.isPending ? t.auth.registerPending : t.auth.registerBtn}
             </button>
             <p style={linkTextStyle}>
-              이미 계정이 있으신가요?{' '}
+              {t.auth.hasAccount}{' '}
               <button
                 type="button"
                 style={linkBtnStyle}
                 onClick={() => setTab('login')}
               >
-                로그인
+                {t.auth.loginTab}
               </button>
             </p>
           </form>

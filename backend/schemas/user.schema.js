@@ -14,6 +14,7 @@ const updateMeSchema = {
     currentPassword: Joi.string().optional(),
     newPassword: passwordRule.optional(),
     theme: Joi.string().valid('light', 'dark').optional(),
+    language: Joi.string().valid('ko', 'en', 'zh', 'ja', 'es').optional(),
   }).and('currentPassword', 'newPassword'),
 };
 
