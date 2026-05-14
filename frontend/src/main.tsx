@@ -5,6 +5,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { RouterProvider } from 'react-router-dom';
 import { router } from './router';
 import { Toast } from './components/common/Toast';
+import { ThemeSync } from './components/common/ThemeSync';
 import './index.css';
 
 const queryClient = new QueryClient({
@@ -22,6 +23,7 @@ createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
       <Toast />
+      <ThemeSync />
       {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
   </StrictMode>

@@ -1,17 +1,24 @@
 import { useState } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Sun, Moon } from 'lucide-react';
 import { useAuthStore } from '../../stores/useAuthStore';
+import { useUpdateMe } from '../../hooks/user/useUpdateMe';
 
 export function AppLayout() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const clearAuth = useAuthStore((s) => s.clearAuth);
   const [menuOpen, setMenuOpen] = useState(false);
+  const updateMe = useUpdateMe();
 
   function handleLogout() {
     clearAuth();
     navigate('/auth', { replace: true });
+  }
+
+  function handleThemeToggle() {
+    const newTheme = user?.theme === 'dark' ? 'light' : 'dark';
+    updateMe.mutate({ theme: newTheme });
   }
 
   const headerStyle: React.CSSProperties = {
@@ -66,6 +73,19 @@ export function AppLayout() {
     fontWeight: 'var(--font-weight-medium)' as React.CSSProperties['fontWeight'],
   };
 
+  const themeBtnStyle: React.CSSProperties = {
+    background: 'rgba(255,255,255,0.15)',
+    color: 'var(--color-text-on-primary)',
+    border: '1px solid rgba(255,255,255,0.3)',
+    borderRadius: 'var(--radius-sm)',
+    padding: 'var(--space-1)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '30px',
+    height: '30px',
+  };
+
   const hamburgerBtnStyle: React.CSSProperties = {
     background: 'none',
     color: 'var(--color-text-on-primary)',
@@ -95,6 +115,14 @@ export function AppLayout() {
           <Link to="/" style={navLinkStyle}>할일 목록</Link>
           <Link to="/categories" style={navLinkStyle}>카테고리</Link>
           <Link to="/profile" style={userNameStyle}>{user?.name ?? ''}</Link>
+          <button
+            style={themeBtnStyle}
+            onClick={handleThemeToggle}
+            aria-label={user?.theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
+            title={user?.theme === 'dark' ? '라이트 모드' : '다크 모드'}
+          >
+            {user?.theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
           <button style={logoutBtnStyle} onClick={handleLogout}>로그아웃</button>
         </nav>
         <button
@@ -110,7 +138,16 @@ export function AppLayout() {
         <Link to="/" style={navLinkStyle} onClick={() => setMenuOpen(false)}>할일 목록</Link>
         <Link to="/categories" style={navLinkStyle} onClick={() => setMenuOpen(false)}>카테고리</Link>
         <Link to="/profile" style={navLinkStyle} onClick={() => setMenuOpen(false)}>{user?.name ?? ''}</Link>
-        <button style={{ ...logoutBtnStyle, alignSelf: 'flex-start' }} onClick={handleLogout}>로그아웃</button>
+        <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center' }}>
+          <button
+            style={themeBtnStyle}
+            onClick={handleThemeToggle}
+            aria-label={user?.theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환'}
+          >
+            {user?.theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
+          <button style={logoutBtnStyle} onClick={handleLogout}>로그아웃</button>
+        </div>
       </div>
       <main>
         <Outlet />

@@ -13,6 +13,7 @@ const updateMeSchema = {
     name: Joi.string().min(1).max(50).optional(),
     currentPassword: Joi.string().optional(),
     newPassword: passwordRule.optional(),
+    theme: Joi.string().valid('light', 'dark').optional(),
   }).and('currentPassword', 'newPassword'),
 };
 

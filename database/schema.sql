@@ -22,6 +22,7 @@ CREATE TABLE users (
     email      VARCHAR(255) NOT NULL UNIQUE,
     password   VARCHAR(255) NOT NULL,          -- bcrypt 해시 저장 (평문 금지)
     name       VARCHAR(50)  NOT NULL,
+    theme      VARCHAR(10)  NOT NULL DEFAULT 'light',
     created_at TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
 
@@ -29,6 +30,7 @@ COMMENT ON TABLE  users            IS '서비스 사용자';
 COMMENT ON COLUMN users.email      IS '로그인 ID. RFC 5322 형식, 시스템 내 유일';
 COMMENT ON COLUMN users.password   IS 'bcrypt 해시 암호화된 비밀번호 (salt rounds >= 10)';
 COMMENT ON COLUMN users.name       IS '사용자 이름 (1~50자)';
+COMMENT ON COLUMN users.theme      IS 'UI 테마 설정: light(기본) 또는 dark';
 COMMENT ON COLUMN users.created_at IS '계정 생성 일시';
 
 

@@ -4,7 +4,7 @@ const pool = require('../config/db');
 
 async function findByEmail(email) {
   const { rows } = await pool.query(
-    'SELECT user_id, email, password, name, created_at FROM users WHERE email = $1',
+    'SELECT user_id, email, password, name, theme, created_at FROM users WHERE email = $1',
     [email]
   );
   return rows[0] || null;
@@ -12,7 +12,7 @@ async function findByEmail(email) {
 
 async function findById(userId) {
   const { rows } = await pool.query(
-    'SELECT user_id, email, name, created_at FROM users WHERE user_id = $1',
+    'SELECT user_id, email, name, theme, created_at FROM users WHERE user_id = $1',
     [userId]
   );
   return rows[0] || null;
@@ -20,25 +20,26 @@ async function findById(userId) {
 
 async function create({ email, password, name }) {
   const { rows } = await pool.query(
-    'INSERT INTO users (email, password, name) VALUES ($1, $2, $3) RETURNING user_id, email, name, created_at',
+    'INSERT INTO users (email, password, name) VALUES ($1, $2, $3) RETURNING user_id, email, name, theme, created_at',
     [email, password, name]
   );
   return rows[0];
 }
 
-async function updateById(userId, { name, password }) {
+async function updateById(userId, { name, password, theme }) {
   const fields = [];
   const values = [];
   let idx = 1;
 
   if (name !== undefined) { fields.push(`name = $${idx++}`); values.push(name); }
   if (password !== undefined) { fields.push(`password = $${idx++}`); values.push(password); }
+  if (theme !== undefined) { fields.push(`theme = $${idx++}`); values.push(theme); }
 
   if (fields.length === 0) return findById(userId);
 
   values.push(userId);
   const { rows } = await pool.query(
-    `UPDATE users SET ${fields.join(', ')} WHERE user_id = $${idx} RETURNING user_id, email, name, created_at`,
+    `UPDATE users SET ${fields.join(', ')} WHERE user_id = $${idx} RETURNING user_id, email, name, theme, created_at`,
     values
   );
   return rows[0] || null;
@@ -46,7 +47,7 @@ async function updateById(userId, { name, password }) {
 
 async function findByIdWithPassword(userId) {
   const { rows } = await pool.query(
-    'SELECT user_id, email, password, name, created_at FROM users WHERE user_id = $1',
+    'SELECT user_id, email, password, name, theme, created_at FROM users WHERE user_id = $1',
     [userId]
   );
   return rows[0] || null;

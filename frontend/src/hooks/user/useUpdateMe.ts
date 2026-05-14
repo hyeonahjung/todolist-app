@@ -15,9 +15,11 @@ export function useUpdateMe(options?: UseUpdateMeOptions) {
 
   return useMutation({
     mutationFn: (data: UpdateUserRequest) => updateMe(data),
-    onSuccess: (response) => {
+    onSuccess: (response, variables) => {
       useAuthStore.setState((state) => ({ ...state, user: response.data }));
-      addToast('수정이 완료되었습니다.', 'success');
+      if (!('theme' in variables) || Object.keys(variables).length > 1) {
+        addToast('수정이 완료되었습니다.', 'success');
+      }
     },
     onError: (error: AxiosError<ApiError>) => {
       const code = error.response?.data?.error?.code;
