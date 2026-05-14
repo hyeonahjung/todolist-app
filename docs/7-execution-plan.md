@@ -8,22 +8,22 @@
 
 ## 변경 이력
 
-| 버전 | 날짜 | 작성자 | 변경 내용 |
-|------|------|--------|----------|
-| 1.0 | 2026-05-13 | 실행계획 전문가 | 최초 작성 — DB·BE·FE 전 영역 태스크 분해 |
-| 1.1 | 2026-05-13 | hyeonahjung | DB 환경 반영 — Docker 대신 로컬 직접 설치(PostgreSQL 17), DB명 `todolist`, `.env` 형식을 `POSTGRES_CONNECTION_STRING` 단일 변수로 변경 |
-| 1.2 | 2026-05-14 | hyeonahjung | 실제 구현 반영 — BE 태스크 산출물 경로 `src/` → `backend/` 수정, DB-07 경로 수정 |
+| 버전 | 날짜       | 작성자          | 변경 내용                                                                                                                              |
+| ---- | ---------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0  | 2026-05-13 | 실행계획 전문가 | 최초 작성 — DB·BE·FE 전 영역 태스크 분해                                                                                               |
+| 1.1  | 2026-05-13 | hyeonahjung     | DB 환경 반영 — Docker 대신 로컬 직접 설치(PostgreSQL 17), DB명 `todolist`, `.env` 형식을 `POSTGRES_CONNECTION_STRING` 단일 변수로 변경 |
+| 1.2  | 2026-05-14 | hyeonahjung     | 실제 구현 반영 — BE 태스크 산출물 경로 `src/` → `backend/` 수정, DB-07 경로 수정                                                       |
 
 ---
 
 ## 전체 태스크 현황
 
-| 영역 | 태스크 수 | ID 범위 |
-|------|----------|---------|
-| 데이터베이스 (DB) | 8개 | DB-01 ~ DB-08 |
-| 백엔드 (BE) | 9개 | BE-01 ~ BE-09 |
-| 프론트엔드 (FE) | 17개 | FE-01 ~ FE-17 |
-| **합계** | **34개** | |
+| 영역              | 태스크 수 | ID 범위       |
+| ----------------- | --------- | ------------- |
+| 데이터베이스 (DB) | 8개       | DB-01 ~ DB-08 |
+| 백엔드 (BE)       | 9개       | BE-01 ~ BE-09 |
+| 프론트엔드 (FE)   | 17개      | FE-01 ~ FE-17 |
+| **합계**          | **34개**  |               |
 
 ---
 
@@ -55,11 +55,13 @@ FE-01 → FE-02 → FE-03 ↘
 ---
 
 ### DB-01. PostgreSQL 17 환경 설정 및 데이터베이스 생성
+
 **설명**: 로컬 컴퓨터에 직접 설치된 PostgreSQL 17을 사용한다 (`C:\Program Files\PostgreSQL\17\`). `todolist` 데이터베이스가 이미 생성되어 있으며, 이후 모든 DB 작업의 기반이 된다.  
 **산출물**: 실행 중인 PostgreSQL 17 인스턴스 (로컬 설치), `todolist` DB, `.env` / `.env.example`  
 **의존성**: 없음
 
 #### 완료 조건
+
 - [x] `C:\Program Files\PostgreSQL\17\bin\psql.exe --version` 실행 시 `PostgreSQL 17.x` 출력 확인
 - [x] psql 접속 후 `\l` 실행 시 `todolist` DB가 목록에 표시됨
 - [x] `.env` 파일에 `POSTGRES_CONNECTION_STRING=postgresql://postgres:{비밀번호}@localhost:5432/todolist` 형식으로 작성
@@ -69,11 +71,13 @@ FE-01 → FE-02 → FE-03 ↘
 ---
 
 ### DB-02. 스키마 DDL 적용 (users / categories / todos 테이블 생성)
+
 **설명**: `database/schema.sql`을 실행하여 3개 테이블, FK 제약, 부분 유니크 인덱스를 생성한다. ON DELETE CASCADE / SET DEFAULT 정책이 ERD와 일치하는지 확인한다.  
 **산출물**: `todolist` 내 `users`, `categories`, `todos` 테이블  
 **의존성**: DB-01
 
 #### 완료 조건
+
 - [x] `psql -d todolist -f database/schema.sql` 실행 시 오류 없이 완료
 - [x] `\d users` 실행 시 `user_id`, `email`, `password`, `name`, `created_at` 5개 컬럼 확인
 - [x] `\d categories` 실행 시 `category_id`, `name`, `is_default`, `user_id` 4개 컬럼 확인
@@ -86,11 +90,13 @@ FE-01 → FE-02 → FE-03 ↘
 ---
 
 ### DB-03. 기본 카테고리 시드 데이터 삽입 및 검증
+
 **설명**: 시스템 기본 카테고리 "일반"(category_id=1), "업무", "개인"을 삽입한다. "일반"이 반드시 id=1이 되도록 DDL 실행 직후 즉시 삽입한다.  
 **산출물**: `categories` 테이블에 `is_default=true` 3건 삽입 완료  
 **의존성**: DB-02
 
 #### 완료 조건
+
 - [x] `SELECT * FROM categories WHERE is_default = true;` 결과 3건 ("일반", "업무", "개인") 확인
 - [x] `SELECT category_id FROM categories WHERE name = '일반';` 결과가 `1`임을 확인
 - [x] 기본 카테고리 3건 모두 `user_id IS NULL` 확인
@@ -100,11 +106,13 @@ FE-01 → FE-02 → FE-03 ↘
 ---
 
 ### DB-04. 유니크 인덱스 및 부분 인덱스 검증
+
 **설명**: `categories` 테이블의 두 부분 유니크 인덱스가 BR-04, BR-05 규칙대로 동작하는지 확인한다. 동일 사용자 내 이름 중복은 차단하고, 사용자 간에는 허용해야 한다.  
 **산출물**: 유니크 인덱스 동작 검증 결과  
 **의존성**: DB-03
 
 #### 완료 조건
+
 - [x] `SELECT indexname FROM pg_indexes WHERE tablename = 'categories';` 실행 시 `uq_categories_name_user`, `uq_categories_name_default` 두 인덱스 모두 존재
 - [x] 동일 `user_id`로 같은 `name` 카테고리 이중 삽입 시 unique constraint 오류 발생 확인
 - [x] 서로 다른 `user_id`로 동일 `name` 삽입 시 정상 삽입 확인 (사용자 간 허용)
@@ -114,11 +122,13 @@ FE-01 → FE-02 → FE-03 ↘
 ---
 
 ### DB-05. 성능 인덱스 생성 및 검증
+
 **설명**: 할일 목록 조회의 핵심 필터(카테고리, 완료 여부)와 기본 정렬(등록일시 내림차순)을 위한 인덱스 6개가 정상 생성되었는지, 실행 계획에서 사용되는지 확인한다.  
 **산출물**: 인덱스 생성 완료 상태 및 EXPLAIN 결과  
 **의존성**: DB-02
 
 #### 완료 조건
+
 - [x] `pg_indexes` 조회 시 아래 6개 인덱스 모두 존재:
   - `idx_users_email`
   - `idx_categories_user_id`
@@ -133,11 +143,13 @@ FE-01 → FE-02 → FE-03 ↘
 ---
 
 ### DB-06. ON DELETE 연쇄 동작 검증 (CASCADE / SET DEFAULT)
+
 **설명**: 회원 탈퇴(UC-14)와 카테고리 삭제(UC-07) 시나리오의 ON DELETE 정책이 실제 DB에서 의도대로 동작하는지 SQL로 직접 검증한다.  
 **산출물**: 연쇄 동작 검증 결과 (수동 SQL 테스트)  
 **의존성**: DB-03
 
 #### 완료 조건
+
 - [x] 테스트 사용자 삽입 → 할일 3건 등록 → 사용자 `DELETE` 후 해당 할일 0건 확인 (CASCADE)
 - [x] 테스트 카테고리 생성 → 할일 2건 등록 → 카테고리 `DELETE` 후 할일의 `category_id`가 `1`("일반")로 변경 확인 (SET DEFAULT)
 - [x] 사용자 삭제 후 해당 사용자의 사용자 정의 카테고리도 0건 확인 (CASCADE)
@@ -146,11 +158,13 @@ FE-01 → FE-02 → FE-03 ↘
 ---
 
 ### DB-07. pg Pool 연결 설정 구현 및 검증
+
 **설명**: 백엔드 `backend/config/db.js`에 `pg.Pool` 싱글턴을 생성하고 `.env`의 `POSTGRES_CONNECTION_STRING`으로 연결을 구성한다. 모든 Repository가 이 인스턴스만 사용하도록 한다.  
 **산출물**: `backend/config/db.js`, `backend/config/env.js`  
 **의존성**: DB-01
 
 #### 완료 조건
+
 - [x] `backend/config/db.js`에 `new Pool({...})` 형태로 Pool 생성 및 export 확인
 - [x] `backend/config/env.js`에서 필수 환경변수 누락 시 에러를 throw하고 프로세스 종료 확인
 - [x] 서버 기동 시 `pool.query('SELECT 1')` 성공 후 "DB 연결 성공" 로그 출력 확인
@@ -161,11 +175,13 @@ FE-01 → FE-02 → FE-03 ↘
 ---
 
 ### DB-08. 마이그레이션 재현성 검증 및 운영 절차 문서화
+
 **설명**: `schema.sql`을 빈 DB에 재실행했을 때 항상 동일한 결과를 얻을 수 있는지(멱등성) 확인하고, 초기화 절차를 누구나 재현 가능하도록 정리한다.  
 **산출물**: `npm run db:init` 스크립트 또는 README DB 설정 섹션  
 **의존성**: DB-03, DB-05
 
 #### 완료 조건
+
 - [x] `schema.sql` 두 번 연속 실행 시 오류 없이 완료 (`DROP TABLE IF EXISTS` 확인)
 - [x] 재실행 후 `SELECT count(*) FROM categories WHERE is_default = true;` 결과 항상 `3` 확인
 - [x] 재실행 후 "일반" 카테고리의 `category_id`가 항상 `1`임을 확인
@@ -179,11 +195,13 @@ FE-01 → FE-02 → FE-03 ↘
 ---
 
 ### BE-01. 프로젝트 초기화 및 디렉토리 구조 설정
+
 **설명**: Express 서버를 위한 패키지 설치, 디렉토리 구조 생성, 환경변수 파일 구성을 수행한다. 이후 모든 BE 태스크의 기반이 된다.  
 **산출물**: `package.json`, `backend/server.js`, `backend/app.js`, 전체 디렉토리 골격  
 **의존성**: 없음
 
 #### 완료 조건
+
 - [x] `package.json`에 `express`, `pg`, `bcrypt`, `jsonwebtoken`, `dotenv`, `joi` 의존성 설치 완료
 - [x] 개발 의존성 `nodemon`, `jest`, `supertest` 설치 완료
 - [x] `backend/` 하위에 `config/`, `routes/`, `controllers/`, `services/`, `repositories/`, `middlewares/`, `schemas/`, `errors/`, `utils/` 디렉토리 모두 생성
@@ -196,11 +214,13 @@ FE-01 → FE-02 → FE-03 ↘
 ---
 
 ### BE-02. 환경변수 모듈 및 pg Pool 설정
+
 **설명**: `backend/config/env.js`에서 `POSTGRES_CONNECTION_STRING` 등 환경변수를 한 곳에서 읽고 유효성을 검사하며, `backend/config/db.js`에서 pg Pool 싱글턴을 생성한다. 모든 Repository의 선행 조건이다.  
 **산출물**: `backend/config/env.js`, `backend/config/db.js`  
 **의존성**: BE-01
 
 #### 완료 조건
+
 - [x] `backend/config/env.js`에서 필수 환경변수 누락 시 `"Missing required env variable: {KEY}"` 에러 throw 확인
 - [x] `backend/config/db.js`에서 `new Pool({...})`으로 인스턴스 생성 및 `module.exports`로 export 확인
 - [x] 서버 기동 시 `pool.query('SELECT NOW()')` 성공 후 "Database connected" 로그 출력 확인
@@ -210,11 +230,13 @@ FE-01 → FE-02 → FE-03 ↘
 ---
 
 ### BE-03. 공통 에러 클래스 및 전역 에러 핸들러 구현
+
 **설명**: `AppError` 커스텀 에러 클래스와 Express 전역 에러 핸들러를 구현하여 서비스 전체에서 일관된 에러 응답 형식을 보장한다.  
 **산출물**: `backend/errors/AppError.js`, `backend/app.js` (에러 핸들러 등록)  
 **의존성**: BE-01
 
 #### 완료 조건
+
 - [x] `AppError`가 `statusCode`, `code`, `message`를 받으며 `Error`를 상속 확인
 - [x] 에러 핸들러가 `AppError`를 `{ success: false, error: { code, message } }` 형태로 응답 확인
 - [x] 예상치 못한 에러는 500과 `{ code: "INTERNAL_ERROR" }`로 응답하며 스택 트레이스 미노출 확인
@@ -224,11 +246,13 @@ FE-01 → FE-02 → FE-03 ↘
 ---
 
 ### BE-04. JWT 유틸리티 및 bcrypt 유틸리티 구현
+
 **설명**: Access/Refresh Token 서명·검증 함수와 bcrypt 해시 생성·비교 함수를 구현한다. 인증 서비스(BE-06)의 선행 조건이다.  
 **산출물**: `backend/utils/jwt.util.js`, `backend/utils/hash.util.js`  
 **의존성**: BE-02
 
 #### 완료 조건
+
 - [x] `signAccessToken(payload)` — `JWT_ACCESS_SECRET` + `JWT_ACCESS_EXPIRES_IN`(1h) 사용하여 JWT 발급
 - [x] `signRefreshToken(payload)` — `JWT_REFRESH_SECRET` + `JWT_REFRESH_EXPIRES_IN`(7d) 사용하여 JWT 발급
 - [x] `verifyToken(token, secret)` — 만료 토큰에 `AppError(401, 'TOKEN_EXPIRED', ...)` throw 확인
@@ -239,11 +263,13 @@ FE-01 → FE-02 → FE-03 ↘
 ---
 
 ### BE-05. 인증 미들웨어 및 입력값 유효성 검사 미들웨어 구현
+
 **설명**: `authenticate.middleware.js`는 Bearer 토큰을 검증하고 `req.user`를 설정하며, `validate.middleware.js`는 Joi 스키마로 요청 입력값을 검증한다. 모든 도메인 라우터의 공통 선행 조건이다.  
 **산출물**: `backend/middlewares/authenticate.middleware.js`, `backend/middlewares/validate.middleware.js`  
 **의존성**: BE-03, BE-04
 
 #### 완료 조건
+
 - [x] `authenticate` 미들웨어 — `Authorization` 헤더 없을 때 `AppError(401, 'UNAUTHORIZED', ...)` next 전달 확인
 - [x] `authenticate` 미들웨어 — 유효한 토큰일 때 `req.user = { userId, email }` 설정 및 `next()` 호출 확인
 - [x] `authenticate` 미들웨어 — 만료 토큰에 401 반환 확인
@@ -253,11 +279,13 @@ FE-01 → FE-02 → FE-03 ↘
 ---
 
 ### BE-06. 인증 API 구현 (회원가입, 로그인, 로그아웃, 토큰 갱신)
+
 **설명**: UC-01(회원가입), UC-02(로그인), UC-03(로그아웃), 토큰 갱신 엔드포인트를 구현한다. bcrypt 암호화, JWT 발급, 이메일 중복 검증을 포함한다.  
 **산출물**: `backend/schemas/auth.schema.js`, `backend/repositories/user.repository.js`(일부), `backend/services/auth.service.js`, `backend/controllers/auth.controller.js`, `backend/routes/auth.routes.js`  
 **의존성**: BE-02, BE-03, BE-04, BE-05
 
 #### 완료 조건
+
 - [x] **UC-01 / BR-01** — `POST /api/auth/register` 호출 시 201 Created + `{ success: true, data: { userId, email, name } }` 반환 확인
 - [x] **UC-01** — 비밀번호가 DB에 bcrypt 해시로 저장되며 평문 저장 없음 확인
 - [x] **UC-01 / SC-01 [E-02]** — 중복 이메일 등록 시 409 + `{ code: "DUPLICATE_EMAIL" }` 반환 확인
@@ -273,11 +301,13 @@ FE-01 → FE-02 → FE-03 ↘
 ---
 
 ### BE-07. 사용자 API 구현 (내 정보 조회, 개인정보 수정, 회원 탈퇴)
+
 **설명**: UC-04(개인정보 수정)와 UC-14(회원 탈퇴)를 구현한다. 비밀번호 변경 시 현재 비밀번호 확인, 탈퇴 시 트랜잭션 일괄 삭제 로직을 포함한다.  
 **산출물**: `backend/schemas/user.schema.js`, `backend/repositories/user.repository.js`(완성), `backend/services/user.service.js`, `backend/controllers/user.controller.js`, `backend/routes/user.routes.js`  
 **의존성**: BE-05, BE-06
 
 #### 완료 조건
+
 - [x] **UC-04** — `GET /api/users/me` 호출 시 200 + `{ userId, email, name }` 반환 확인
 - [x] **UC-04 / BR-07** — `PATCH /api/users/me`로 이름 수정 시 200 + 수정된 이름 반환 확인
 - [x] **UC-04 / SC-03** — 비밀번호 변경 시 `currentPassword` + `newPassword` 전달하면 200 반환 및 새 비밀번호로 로그인 성공 확인
@@ -292,11 +322,13 @@ FE-01 → FE-02 → FE-03 ↘
 ---
 
 ### BE-08. 카테고리 API 구현 (목록 조회, 등록, 수정, 삭제)
+
 **설명**: UC-05~07을 구현한다. 기본 카테고리 수정·삭제 보호(BR-04), 카테고리 삭제 시 할일을 "일반"으로 이동하는 정책(PRD UC-07)을 포함한다.  
 **산출물**: `backend/schemas/category.schema.js`, `backend/repositories/category.repository.js`, `backend/services/category.service.js`, `backend/controllers/category.controller.js`, `backend/routes/category.routes.js`  
 **의존성**: BE-05, BE-06
 
 #### 완료 조건
+
 - [x] **UC-05** — `GET /api/categories` 호출 시 기본 + 사용자 정의 카테고리 전체 200 반환 확인
 - [x] **UC-05 / BR-05** — `POST /api/categories` 유효한 이름 전달 시 201 + 생성된 카테고리 정보 반환 확인
 - [x] **SC-05 [E-01]** — 동일 사용자 내 중복 카테고리명 등록 시 409 + `{ code: "DUPLICATE_CATEGORY" }` 반환 확인
@@ -311,11 +343,13 @@ FE-01 → FE-02 → FE-03 ↘
 ---
 
 ### BE-09. 할일 API 구현 (CRUD + 완료 처리 + 목록 조회 필터링)
+
 **설명**: UC-08~13 전체를 구현한다. 소유권 검증(BR-02), 카테고리 소유권 검증, 동적 WHERE 절 기반 필터링을 포함한다.  
 **산출물**: `backend/schemas/todo.schema.js`, `backend/repositories/todo.repository.js`, `backend/services/todo.service.js`, `backend/controllers/todo.controller.js`, `backend/routes/todo.routes.js`  
 **의존성**: BE-05, BE-06, BE-08
 
 #### 완료 조건
+
 - [x] **UC-08 / BR-02,03** — `POST /api/todos` 제목·카테고리ID 전달 시 201 + 생성된 할일 반환 확인
 - [x] **PRD 3.2** — 제목 누락, 100자 초과, 설명 1,000자 초과, 과거 날짜 입력 시 400 + 필드 오류 반환 확인
 - [x] **UC-08** — 타인 소유 카테고리 ID로 할일 등록 시도 시 403 또는 404 반환 확인
@@ -338,252 +372,286 @@ FE-01 → FE-02 → FE-03 ↘
 ---
 
 ### FE-01. 프로젝트 초기화 (Vite + React 19 + TypeScript 세팅)
+
 **설명**: Vite 기반 React 19 + TypeScript 프로젝트를 생성하고 ESLint/Prettier/tsconfig 등 개발 환경 공통 설정을 완료한다. 모든 FE 태스크의 기반이 된다.  
 **산출물**: `frontend/` 디렉토리, `vite.config.ts`, `tsconfig.json`, `package.json`, `.env.example`  
 **의존성**: 없음
 
 #### 완료 조건
-- [ ] React 19 + TypeScript 템플릿으로 Vite 프로젝트 생성 확인
-- [ ] `tsconfig.json`에 `strict: true`, `noImplicitAny: true`, `strictNullChecks: true` 활성화 확인
-- [ ] ESLint (TypeScript 규칙 포함) 및 Prettier (탭 2칸, 세미콜론, 작은따옴표) 설정 완료 확인
-- [ ] `VITE_API_BASE_URL` 환경변수를 `.env.example`에 정의 및 `.env.local`에 실제 값 설정 확인
-- [ ] `src/api/`, `src/stores/`, `src/hooks/`, `src/pages/`, `src/components/`, `src/types/` 디렉토리 사전 생성 확인
-- [ ] `npm run dev` 실행 후 브라우저에서 빈 React 앱 로드 확인
+
+- [x] React 19 + TypeScript 템플릿으로 Vite 프로젝트 생성 확인
+- [x] `tsconfig.json`에 `strict: true`, `noImplicitAny: true`, `strictNullChecks: true` 활성화 확인
+- [x] ESLint (TypeScript 규칙 포함) 및 Prettier (탭 2칸, 세미콜론, 작은따옴표) 설정 완료 확인
+- [x] `VITE_API_BASE_URL` 환경변수를 `.env.example`에 정의 및 `.env.local`에 실제 값 설정 확인
+- [x] `src/api/`, `src/stores/`, `src/hooks/`, `src/pages/`, `src/components/`, `src/types/` 디렉토리 사전 생성 확인
+- [x] `npm run dev` 실행 후 브라우저에서 빈 React 앱 로드 확인
 
 ---
 
 ### FE-02. 공통 타입 정의
+
 **설명**: 백엔드 API 응답 구조 및 각 도메인 엔티티(User, Category, Todo)에 대응하는 TypeScript 인터페이스를 정의한다. 모든 API 함수와 훅의 타입 안전성 확보를 위한 선행 작업이다.  
 **산출물**: `src/types/common.types.ts`, `src/types/user.types.ts`, `src/types/category.types.ts`, `src/types/todo.types.ts`  
 **의존성**: FE-01
 
 #### 완료 조건
-- [ ] `common.types.ts`에 `ApiResponse<T>`, `ApiError` 공통 타입 정의 확인
-- [ ] `user.types.ts`에 `User`, `UpdateUserRequest`, `DeleteUserRequest` 인터페이스 정의 확인
-- [ ] `category.types.ts`에 `Category`, `CreateCategoryRequest`, `UpdateCategoryRequest` 인터페이스 정의 확인
-- [ ] `todo.types.ts`에 `Todo`, `CreateTodoRequest`, `UpdateTodoRequest`, `TodoFilter` 인터페이스 정의 확인
-- [ ] 모든 타입 파일에서 `any` 미사용 및 TypeScript 컴파일 에러 없음 확인
+
+- [x] `common.types.ts`에 `ApiResponse<T>`, `ApiError` 공통 타입 정의 확인
+- [x] `user.types.ts`에 `User`, `UpdateUserRequest`, `DeleteUserRequest` 인터페이스 정의 확인
+- [x] `category.types.ts`에 `Category`, `CreateCategoryRequest`, `UpdateCategoryRequest` 인터페이스 정의 확인
+- [x] `todo.types.ts`에 `Todo`, `CreateTodoRequest`, `UpdateTodoRequest`, `TodoFilter` 인터페이스 정의 확인
+- [x] 모든 타입 파일에서 `any` 미사용 및 TypeScript 컴파일 에러 없음 확인
 
 ---
 
 ### FE-03. axios 클라이언트 설정 (인터셉터: 토큰 자동 첨부 + 401 자동 갱신)
+
 **설명**: axios 인스턴스를 생성하고 요청 인터셉터(Access Token 첨부)와 응답 인터셉터(401 수신 시 Refresh Token으로 자동 갱신 후 재시도)를 구현한다.  
 **산출물**: `src/api/apiClient.ts`  
 **의존성**: FE-01, FE-02
 
 #### 완료 조건
-- [ ] `baseURL`이 `VITE_API_BASE_URL` 환경변수를 참조하는 axios 인스턴스 생성 확인
-- [ ] 요청 인터셉터 — `useAuthStore`에서 `accessToken`을 읽어 `Authorization: Bearer {token}` 헤더 자동 첨부 확인
-- [ ] 응답 인터셉터 — 401 수신 시 `POST /api/auth/refresh`를 Refresh Token으로 호출하여 새 Access Token 발급 후 `useAuthStore` 업데이트 확인
-- [ ] 갱신 성공 후 원래 실패 요청을 새 토큰으로 자동 재시도 확인
-- [ ] Refresh Token도 만료(refresh 요청 401) 시 `clearAuth()` 호출 + `/auth`로 리다이렉트 확인 (SC-02 E-03)
-- [ ] 동시 다중 401 요청 시 토큰 갱신 요청이 1회만 발생하고 나머지는 대기 후 재시도 확인
+
+- [x] `baseURL`이 `VITE_API_BASE_URL` 환경변수를 참조하는 axios 인스턴스 생성 확인
+- [x] 요청 인터셉터 — `useAuthStore`에서 `accessToken`을 읽어 `Authorization: Bearer {token}` 헤더 자동 첨부 확인
+- [x] 응답 인터셉터 — 401 수신 시 `POST /api/auth/refresh`를 Refresh Token으로 호출하여 새 Access Token 발급 후 `useAuthStore` 업데이트 확인
+- [x] 갱신 성공 후 원래 실패 요청을 새 토큰으로 자동 재시도 확인
+- [x] Refresh Token도 만료(refresh 요청 401) 시 `clearAuth()` 호출 + `/auth`로 리다이렉트 확인 (SC-02 E-03)
+- [x] 동시 다중 401 요청 시 토큰 갱신 요청이 1회만 발생하고 나머지는 대기 후 재시도 확인
 
 ---
 
 ### FE-04. Zustand 인증 스토어 (accessToken, refreshToken, user 상태)
+
 **설명**: 로그인·로그아웃·토큰 갱신에 따른 인증 상태를 Zustand 메모리 스토어로 관리한다. 페이지 새로고침 시 토큰 소멸 정책을 반영한다.  
 **산출물**: `src/stores/useAuthStore.ts`  
 **의존성**: FE-01, FE-02
 
 #### 완료 조건
-- [ ] `accessToken: string | null`, `refreshToken: string | null`, `user: User | null` 상태 정의 확인
-- [ ] `setAuth(accessToken, refreshToken, user)` — 세 값 동시 저장 확인
-- [ ] `setAccessToken(accessToken)` — 토큰 갱신 시 Access Token만 업데이트 확인
-- [ ] `clearAuth()` — 모든 인증 상태 null 초기화 확인
-- [ ] 스토어가 `localStorage`/`sessionStorage`에 토큰을 저장하지 않음 확인
-- [ ] 로그인 후 페이지 새로고침 시 스토어 초기화 및 로그인 화면 이동 확인
+
+- [x] `accessToken: string | null`, `refreshToken: string | null`, `user: User | null` 상태 정의 확인
+- [x] `setAuth(accessToken, refreshToken, user)` — 세 값 동시 저장 확인
+- [x] `setAccessToken(accessToken)` — 토큰 갱신 시 Access Token만 업데이트 확인
+- [x] `clearAuth()` — 모든 인증 상태 null 초기화 확인
+- [x] 스토어가 `localStorage`/`sessionStorage`에 토큰을 저장하지 않음 확인
+- [x] 로그인 후 페이지 새로고침 시 스토어 초기화 및 로그인 화면 이동 확인
 
 ---
 
 ### FE-05. TanStack Query 설정 (QueryClient)
+
 **설명**: `QueryClient`를 생성하고 `QueryClientProvider`로 앱 전체에 주입한다. 전역 에러 처리 및 공통 옵션을 설정한다.  
 **산출물**: `src/main.tsx` (QueryClientProvider 등록 포함)  
 **의존성**: FE-01
 
 #### 완료 조건
-- [ ] `QueryClient` 인스턴스에 `defaultOptions` (`staleTime`, `retry` 등) 설정 확인
-- [ ] `src/main.tsx`에서 `<QueryClientProvider client={queryClient}>` 로 앱 전체 감싸기 확인
-- [ ] 개발 환경에서 `ReactQueryDevtools` 컴포넌트 렌더링 확인
-- [ ] 브라우저 개발자도구에서 QueryDevtools 패널 정상 노출 확인
+
+- [x] `QueryClient` 인스턴스에 `defaultOptions` (`staleTime`, `retry` 등) 설정 확인
+- [x] `src/main.tsx`에서 `<QueryClientProvider client={queryClient}>` 로 앱 전체 감싸기 확인
+- [x] 개발 환경에서 `ReactQueryDevtools` 컴포넌트 렌더링 확인
+- [x] 브라우저 개발자도구에서 QueryDevtools 패널 정상 노출 확인
 
 ---
 
 ### FE-06. 라우팅 설정 (공개/보호 라우트)
+
 **설명**: React Router로 공개 라우트(`/auth`)와 보호 라우트(`/`, `/todos/:todoId`, `/categories`, `/profile`)를 정의한다. 미인증 상태에서 보호 라우트 접근 시 `/auth`로 리다이렉트하는 `ProtectedRoute` 컴포넌트를 구현한다.  
 **산출물**: `src/router.tsx`, `src/components/layout/ProtectedRoute.tsx`  
 **의존성**: FE-04, FE-05
 
 #### 완료 조건
-- [ ] `/auth` → `AuthPage`, `/` → `TodoListPage`, `/todos/:todoId` → `TodoDetailPage`, `/categories` → `CategoryPage`, `/profile` → `ProfilePage` 라우팅 확인
-- [ ] `ProtectedRoute` — `accessToken`이 null이면 `<Navigate to="/auth" replace />` 처리 확인
-- [ ] 비로그인 상태로 `/` 접속 시 `/auth`로 즉시 리다이렉트 확인
-- [ ] 로그인 상태로 `/auth` 접속 시 `/`로 리다이렉트 확인
+
+- [x] `/auth` → `AuthPage`, `/` → `TodoListPage`, `/todos/:todoId` → `TodoDetailPage`, `/categories` → `CategoryPage`, `/profile` → `ProfilePage` 라우팅 확인
+- [x] `ProtectedRoute` — `accessToken`이 null이면 `<Navigate to="/auth" replace />` 처리 확인
+- [x] 비로그인 상태로 `/` 접속 시 `/auth`로 즉시 리다이렉트 확인
+- [x] 로그인 상태로 `/auth` 접속 시 `/`로 리다이렉트 확인
 
 ---
 
 ### FE-07. 레이아웃 및 공통 컴포넌트
+
 **설명**: 공통 레이아웃(네비게이션 바)과 Modal, ConfirmDialog, ErrorMessage, LoadingSpinner 등 재사용 가능한 UI 컴포넌트를 구현한다.  
 **산출물**: `src/components/layout/AppLayout.tsx`, `src/components/common/Modal.tsx`, `ConfirmDialog.tsx`, `ErrorMessage.tsx`, `LoadingSpinner.tsx`  
 **의존성**: FE-06
 
 #### 완료 조건
-- [ ] `AppLayout.tsx` — 네비게이션 바(앱 제목, 카테고리 관리·프로필 링크, 로그아웃 버튼) 구현 확인
-- [ ] 로그아웃 버튼 클릭 시 `clearAuth()` 호출 + `/auth` 이동 확인 (UC-03)
-- [ ] `Modal.tsx` — `isOpen`, `onClose`, `title`, `children` props 기반 오버레이 모달 구현 확인
-- [ ] `ConfirmDialog.tsx` — 메시지, 확인·취소 콜백 props 기반 확인 다이얼로그 구현 확인
-- [ ] `ErrorMessage.tsx`, `LoadingSpinner.tsx` 구현 확인
-- [ ] 로그인 후 메인 화면에서 네비게이션 바 정상 렌더링 브라우저 확인
+
+- [x] `AppLayout.tsx` — 네비게이션 바(앱 제목, 카테고리 관리·프로필 링크, 로그아웃 버튼) 구현 확인
+- [x] 로그아웃 버튼 클릭 시 `clearAuth()` 호출 + `/auth` 이동 확인 (UC-03)
+- [x] `Modal.tsx` — `isOpen`, `onClose`, `title`, `children` props 기반 오버레이 모달 구현 확인
+- [x] `ConfirmDialog.tsx` — 메시지, 확인·취소 콜백 props 기반 확인 다이얼로그 구현 확인
+- [x] `ErrorMessage.tsx`, `LoadingSpinner.tsx` 구현 확인
+- [x] 로그인 후 메인 화면에서 네비게이션 바 정상 렌더링 브라우저 확인
 
 ---
 
 ### FE-08. 인증 API 함수 및 훅 구현 (회원가입, 로그인, 로그아웃)
+
 **설명**: 회원가입(UC-01), 로그인(UC-02), 로그아웃(UC-03) API 함수와 TanStack Query `useMutation` 기반 훅을 구현한다. 로그인 성공 시 `setAuth()`로 토큰·사용자 정보를 저장한다.  
 **산출물**: `src/api/auth.api.ts`, `src/hooks/auth/useRegister.ts`, `useLogin.ts`, `useLogout.ts`  
 **의존성**: FE-03, FE-04, FE-05
 
 #### 완료 조건
-- [ ] `auth.api.ts`에 `register`, `login`, `logout`, `refreshToken` 함수 구현 및 반환 타입 정의 확인
-- [ ] `useLogin` — 성공 시 `setAuth(accessToken, refreshToken, user)` 호출 + `/`로 이동 확인 (SC-02)
-- [ ] `useLogout` — `POST /api/auth/logout` 후 `clearAuth()` 실행 + `/auth` 이동 확인 (UC-03)
-- [ ] `useRegister` — 성공 시 로그인 화면 이동 + 성공 메시지 표시 확인 (SC-01)
-- [ ] 모든 훅에서 에러 발생 시 `ApiError.message`를 UI에 노출하는 처리 확인
+
+- [x] `auth.api.ts`에 `register`, `login`, `logout`, `refreshToken` 함수 구현 및 반환 타입 정의 확인
+- [x] `useLogin` — 성공 시 `setAuth(accessToken, refreshToken, user)` 호출 + `/`로 이동 확인 (SC-02)
+- [x] `useLogout` — `POST /api/auth/logout` 후 `clearAuth()` 실행 + `/auth` 이동 확인 (UC-03)
+- [x] `useRegister` — 성공 시 로그인 화면 이동 + 성공 메시지 표시 확인 (SC-01)
+- [x] 모든 훅에서 에러 발생 시 `ApiError.message`를 UI에 노출하는 처리 확인
 
 ---
 
 ### FE-09. 인증 화면 UI (회원가입, 로그인)
+
 **설명**: 회원가입(UC-01)과 로그인(UC-02) 폼을 `AuthPage` 하나에서 탭/토글 방식으로 제공한다. 입력값 유효성 검증을 클라이언트 측에서 실시간으로 처리한다.  
 **산출물**: `src/pages/AuthPage.tsx`  
 **의존성**: FE-07, FE-08
 
 #### 완료 조건
-- [ ] 로그인 폼 — 이메일, 비밀번호 입력 필드 + "로그인" 버튼 렌더링 확인
-- [ ] 회원가입 폼 — 이름, 이메일, 비밀번호 입력 필드 + "가입하기" 버튼 렌더링 확인
-- [ ] 이메일 형식 오류 시 "올바른 이메일 형식을 입력해 주세요." 메시지 표시 확인 (SC-01 E-01)
-- [ ] 비밀번호 8자 미만 또는 영문·숫자 미포함 시 오류 메시지 표시 확인 (SC-01 E-03)
-- [ ] 이메일·비밀번호 불일치 서버 에러 시 오류 메시지 표시 확인 (SC-02 E-01)
-- [ ] 이메일 중복 서버 에러 시 "이미 사용 중인 이메일입니다." 메시지 표시 확인 (SC-01 E-02)
-- [ ] 로그인 성공 후 `/`(할일 목록 메인 화면)으로 이동 확인 (SC-02 기본 흐름 6단계)
+
+- [x] 로그인 폼 — 이메일, 비밀번호 입력 필드 + "로그인" 버튼 렌더링 확인
+- [x] 회원가입 폼 — 이름, 이메일, 비밀번호 입력 필드 + "가입하기" 버튼 렌더링 확인
+- [x] 이메일 형식 오류 시 "올바른 이메일 형식을 입력해 주세요." 메시지 표시 확인 (SC-01 E-01)
+- [x] 비밀번호 8자 미만 또는 영문·숫자 미포함 시 오류 메시지 표시 확인 (SC-01 E-03)
+- [x] 이메일·비밀번호 불일치 서버 에러 시 오류 메시지 표시 확인 (SC-02 E-01)
+- [x] 이메일 중복 서버 에러 시 "이미 사용 중인 이메일입니다." 메시지 표시 확인 (SC-01 E-02)
+- [x] 로그인 성공 후 `/`(할일 목록 메인 화면)으로 이동 확인 (SC-02 기본 흐름 6단계)
 
 ---
 
 ### FE-10. 카테고리 API 함수 및 훅 구현
+
 **설명**: 카테고리 목록 조회, 등록(UC-05), 수정(UC-06), 삭제(UC-07) API 함수와 TanStack Query 훅을 구현한다. 뮤테이션 성공 시 `['categories']` 쿼리 키를 무효화하여 목록을 자동 갱신한다.  
 **산출물**: `src/api/category.api.ts`, `src/hooks/categories/useCategories.ts`, `useCreateCategory.ts`, `useUpdateCategory.ts`, `useDeleteCategory.ts`  
 **의존성**: FE-03, FE-05
 
 #### 완료 조건
-- [ ] `category.api.ts`에 `getCategories`, `createCategory`, `updateCategory`, `deleteCategory` 함수 구현 확인
-- [ ] `useCategories` — 인증 상태일 때만 요청하는 `enabled` 조건 포함 확인
-- [ ] `useCreateCategory`, `useUpdateCategory`, `useDeleteCategory` — 성공 시 `['categories']` 캐시 무효화 확인
-- [ ] 각 훅에서 API 에러(409 중복, 400 유효성 오류 등)를 `ApiError` 타입으로 처리 확인
+
+- [x] `category.api.ts`에 `getCategories`, `createCategory`, `updateCategory`, `deleteCategory` 함수 구현 확인
+- [x] `useCategories` — 인증 상태일 때만 요청하는 `enabled` 조건 포함 확인
+- [x] `useCreateCategory`, `useUpdateCategory`, `useDeleteCategory` — 성공 시 `['categories']` 캐시 무효화 확인
+- [x] 각 훅에서 API 에러(409 중복, 400 유효성 오류 등)를 `ApiError` 타입으로 처리 확인
 
 ---
 
 ### FE-11. 카테고리 관리 UI
+
 **설명**: 카테고리 목록 표시, 등록·수정 폼, 삭제 확인 다이얼로그를 구현한다. `isDefault` 속성에 따라 기본 카테고리의 수정·삭제 버튼을 비활성화한다.  
 **산출물**: `src/pages/CategoryPage.tsx`, `src/components/category/CategoryList.tsx`, `CategoryForm.tsx`  
 **의존성**: FE-07, FE-10
 
 #### 완료 조건
-- [ ] 기본 카테고리(일반, 업무, 개인) 수정·삭제 버튼 비활성화 확인 (BR-04)
-- [ ] "카테고리 추가" 버튼 클릭 시 등록 폼 표시 확인
-- [ ] 카테고리명 30자 초과 시 오류 메시지 표시 확인 (SC-05 E-02)
-- [ ] 중복 카테고리명 시 "이미 존재하는 카테고리명입니다." 표시 확인 (SC-05 E-01)
-- [ ] 삭제 버튼 클릭 시 `ConfirmDialog` 표시 + 할일 존재 시 "소속 할일은 '일반' 카테고리로 이동됩니다." 안내 포함 확인 (SC-07 기본 흐름 3단계)
-- [ ] 삭제 확인 후 카테고리 목록에서 즉시 제거 확인
+
+- [x] 기본 카테고리(일반, 업무, 개인) 수정·삭제 버튼 비활성화 확인 (BR-04)
+- [x] "카테고리 추가" 버튼 클릭 시 등록 폼 표시 확인
+- [x] 카테고리명 30자 초과 시 오류 메시지 표시 확인 (SC-05 E-02)
+- [x] 중복 카테고리명 시 "이미 존재하는 카테고리명입니다." 표시 확인 (SC-05 E-01)
+- [x] 삭제 버튼 클릭 시 `ConfirmDialog` 표시 + 할일 존재 시 "소속 할일은 '일반' 카테고리로 이동됩니다." 안내 포함 확인 (SC-07 기본 흐름 3단계)
+- [x] 삭제 확인 후 카테고리 목록에서 즉시 제거 확인
 
 ---
 
 ### FE-12. 할일 API 함수 및 훅 구현
+
 **설명**: 할일 목록 조회(필터링 포함, UC-12), 단건 조회(UC-13), 등록(UC-08), 수정(UC-09), 삭제(UC-10), 완료 토글(UC-11) API 함수와 TanStack Query 훅을 구현한다.  
 **산출물**: `src/api/todo.api.ts`, `src/hooks/todos/useTodos.ts`, `useTodo.ts`, `useCreateTodo.ts`, `useUpdateTodo.ts`, `useDeleteTodo.ts`, `useToggleTodoCompletion.ts`  
 **의존성**: FE-03, FE-05
 
 #### 완료 조건
-- [ ] `todo.api.ts`에 `getTodos(filter)`, `getTodoById`, `createTodo`, `updateTodo`, `deleteTodo`, `toggleCompletion` 함수 구현 및 반환 타입 정의 확인
-- [ ] `getTodos`가 `categoryId`, `isCompleted`, `dueDateFrom`, `dueDateTo` 쿼리 파라미터 지원 확인 (UC-12)
-- [ ] `useTodos` — `TodoFilter` 객체를 쿼리 키 `['todos', filter]`에 포함하여 필터 변경 시 자동 refetch 확인
-- [ ] 생성·수정·삭제·완료토글 뮤테이션 성공 시 `['todos']` 캐시 무효화 확인
+
+- [x] `todo.api.ts`에 `getTodos(filter)`, `getTodoById`, `createTodo`, `updateTodo`, `deleteTodo`, `toggleCompletion` 함수 구현 및 반환 타입 정의 확인
+- [x] `getTodos`가 `categoryId`, `isCompleted`, `dueDateFrom`, `dueDateTo` 쿼리 파라미터 지원 확인 (UC-12)
+- [x] `useTodos` — `TodoFilter` 객체를 쿼리 키 `['todos', filter]`에 포함하여 필터 변경 시 자동 refetch 확인
+- [x] 생성·수정·삭제·완료토글 뮤테이션 성공 시 `['todos']` 캐시 무효화 확인
 
 ---
 
 ### FE-13. 할일 목록 + 필터링 UI
+
 **설명**: 메인 화면인 할일 목록 페이지를 구현한다. 카테고리/완료 여부/종료예정일 기간 필터 UI와 함께 등록일시 내림차순으로 정렬된 할일 목록을 표시한다.  
 **산출물**: `src/pages/TodoListPage.tsx`, `src/components/todo/TodoList.tsx`, `TodoCard.tsx`, `FilterBar.tsx`  
 **의존성**: FE-07, FE-10, FE-12
 
 #### 완료 조건
-- [ ] `FilterBar.tsx` — 카테고리 드롭다운, 완료 여부 선택(전체/완료/미완료), 종료예정일 기간 날짜 입력 UI 구현 확인 (UC-12)
-- [ ] "필터 초기화" 버튼 클릭 시 모든 필터 제거 및 전체 목록 등록일시 내림차순 표시 확인 (SC-10 A-01)
-- [ ] `TodoCard.tsx` — 제목, 카테고리명, 종료예정일, 완료 여부, 수정·삭제 버튼 표시 확인
-- [ ] 완료 체크박스 클릭 시 `useToggleTodoCompletion` 호출 및 목록에 완료 상태 즉시 반영 확인 (UC-11)
-- [ ] 필터 조건에 맞는 할일 없을 시 "조건에 맞는 할일이 없습니다." 메시지 표시 확인 (SC-10 E-01)
-- [ ] 로딩 중 `LoadingSpinner` 표시, 오류 시 `ErrorMessage` 표시 확인
-- [ ] 카테고리 필터 변경 후 해당 카테고리 할일만 목록에 표시 브라우저 확인
+
+- [x] `FilterBar.tsx` — 카테고리 드롭다운, 완료 여부 선택(전체/완료/미완료), 종료예정일 기간 날짜 입력 UI 구현 확인 (UC-12)
+- [x] "필터 초기화" 버튼 클릭 시 모든 필터 제거 및 전체 목록 등록일시 내림차순 표시 확인 (SC-10 A-01)
+- [x] `TodoCard.tsx` — 제목, 카테고리명, 종료예정일, 완료 여부, 수정·삭제 버튼 표시 확인
+- [x] 완료 체크박스 클릭 시 `useToggleTodoCompletion` 호출 및 목록에 완료 상태 즉시 반영 확인 (UC-11)
+- [x] 필터 조건에 맞는 할일 없을 시 "조건에 맞는 할일이 없습니다." 메시지 표시 확인 (SC-10 E-01)
+- [x] 로딩 중 `LoadingSpinner` 표시, 오류 시 `ErrorMessage` 표시 확인
+- [x] 카테고리 필터 변경 후 해당 카테고리 할일만 목록에 표시 브라우저 확인
 
 ---
 
 ### FE-14. 할일 등록/수정/삭제 UI
+
 **설명**: 할일 등록(UC-08), 수정(UC-09), 삭제(UC-10) 기능을 위한 폼과 삭제 확인 다이얼로그를 구현한다. 등록·수정을 `TodoForm` 하나로 처리하며 PRD 3.2 유효성 검증 규칙을 적용한다.  
 **산출물**: `src/components/todo/TodoForm.tsx`  
 **의존성**: FE-07, FE-10, FE-12, FE-13
 
 #### 완료 조건
-- [ ] `TodoForm.tsx` — 제목(필수, 최대 100자), 카테고리 드롭다운(필수), 설명(선택, 최대 1,000자), 종료예정일(선택) 필드 구현 확인 (UC-08)
-- [ ] 수정 모드 시 기존 데이터가 초기값으로 채워짐 확인 (SC-08 기본 흐름 3단계)
-- [ ] 각 필드 유효성 실패 시 필드별 오류 메시지 표시 확인 (SC-05 E-03~07)
-- [ ] 종료예정일로 오늘 이전 날짜 선택 시 "오늘 이후 날짜로 설정해 주세요." 표시 확인
-- [ ] 등록 성공 후 폼이 닫히고 목록에 새 항목 즉시 추가 확인
-- [ ] 수정 성공 후 목록에 변경 사항 즉시 반영 확인
-- [ ] 삭제 버튼 클릭 시 `ConfirmDialog` 표시 및 삭제 확인 후 목록에서 즉시 제거 확인 (SC-09)
+
+- [x] `TodoForm.tsx` — 제목(필수, 최대 100자), 카테고리 드롭다운(필수), 설명(선택, 최대 1,000자), 종료예정일(선택) 필드 구현 확인 (UC-08)
+- [x] 수정 모드 시 기존 데이터가 초기값으로 채워짐 확인 (SC-08 기본 흐름 3단계)
+- [x] 각 필드 유효성 실패 시 필드별 오류 메시지 표시 확인 (SC-05 E-03~07)
+- [x] 종료예정일로 오늘 이전 날짜 선택 시 "오늘 이후 날짜로 설정해 주세요." 표시 확인
+- [x] 등록 성공 후 폼이 닫히고 목록에 새 항목 즉시 추가 확인
+- [x] 수정 성공 후 목록에 변경 사항 즉시 반영 확인
+- [x] 삭제 버튼 클릭 시 `ConfirmDialog` 표시 및 삭제 확인 후 목록에서 즉시 제거 확인 (SC-09)
 
 ---
 
 ### FE-15. 할일 상세 조회 UI
+
 **설명**: 할일 카드 클릭 시 해당 할일의 전체 정보(제목, 설명, 카테고리명, 종료예정일, 완료 여부, 등록일시, 최종 수정일시)를 표시하는 상세 페이지 또는 모달을 구현한다.  
 **산출물**: `src/pages/TodoDetailPage.tsx`  
 **의존성**: FE-07, FE-12, FE-14
 
 #### 완료 조건
-- [ ] 할일 클릭 시 `/todos/:todoId` 또는 모달로 이동 확인 (SC-11 기본 흐름 1단계)
-- [ ] 제목, 설명, 카테고리명, 종료예정일, 완료 여부, 등록일시, 최종 수정일시 전체 표시 확인 (UC-13)
-- [ ] "수정" 버튼 클릭 시 `TodoForm` 수정 모드 진입 확인 (SC-11 A-01)
-- [ ] 완료 토글 동작 확인 (SC-11 A-02, UC-11)
-- [ ] "삭제" 버튼 클릭 시 삭제 확인 다이얼로그 → 삭제 후 목록 화면으로 이동 확인 (SC-11 A-03)
-- [ ] 이미 삭제된 할일 URL 직접 접속 시 "존재하지 않는 할일입니다." 표시 후 목록으로 이동 확인 (SC-11 E-02)
+
+- [x] 할일 클릭 시 `/todos/:todoId` 또는 모달로 이동 확인 (SC-11 기본 흐름 1단계)
+- [x] 제목, 설명, 카테고리명, 종료예정일, 완료 여부, 등록일시, 최종 수정일시 전체 표시 확인 (UC-13)
+- [x] "수정" 버튼 클릭 시 `TodoForm` 수정 모드 진입 확인 (SC-11 A-01)
+- [x] 완료 토글 동작 확인 (SC-11 A-02, UC-11)
+- [x] "삭제" 버튼 클릭 시 삭제 확인 다이얼로그 → 삭제 후 목록 화면으로 이동 확인 (SC-11 A-03)
+- [x] 이미 삭제된 할일 URL 직접 접속 시 "존재하지 않는 할일입니다." 표시 후 목록으로 이동 확인 (SC-11 E-02)
 
 ---
 
 ### FE-16. 개인정보 수정 + 회원 탈퇴 UI
+
 **설명**: 이름·비밀번호 수정(UC-04)과 회원 탈퇴(UC-14) 기능을 포함하는 프로필 페이지를 구현한다. 탈퇴 시 비밀번호 재입력 본인 확인 절차를 포함한다.  
 **산출물**: `src/pages/ProfilePage.tsx`, `src/api/user.api.ts`, `src/hooks/user/useMe.ts`, `useUpdateMe.ts`, `useDeleteMe.ts`  
 **의존성**: FE-07, FE-08
 
 #### 완료 조건
-- [ ] `user.api.ts`에 `getMe`, `updateMe`, `deleteMe` 함수 구현 및 반환 타입 정의 확인
-- [ ] 현재 이름이 초기값으로 채워진 이름 수정 필드 및 비밀번호 변경 필드 렌더링 확인 (UC-04)
-- [ ] 이름만 수정(비밀번호 필드 비워두기) 가능한 동작 확인 (SC-03 A-01)
-- [ ] 현재 비밀번호 불일치 시 오류 메시지 표시 확인 (SC-03 E-01)
-- [ ] 수정 성공 후 "수정이 완료되었습니다." 메시지 표시 확인
-- [ ] "회원 탈퇴" 버튼 클릭 시 경고 메시지 + 비밀번호 재입력 `ConfirmDialog` 표시 확인 (SC-04 기본 흐름 2~3단계)
-- [ ] 탈퇴 확인 후 `clearAuth()` 호출 + `/auth`로 이동 확인 (UC-14)
-- [ ] 비밀번호 불일치 시 탈퇴 불가 오류 메시지 표시 확인 (SC-04 E-01)
+
+- [x] `user.api.ts`에 `getMe`, `updateMe`, `deleteMe` 함수 구현 및 반환 타입 정의 확인
+- [x] 현재 이름이 초기값으로 채워진 이름 수정 필드 및 비밀번호 변경 필드 렌더링 확인 (UC-04)
+- [x] 이름만 수정(비밀번호 필드 비워두기) 가능한 동작 확인 (SC-03 A-01)
+- [x] 현재 비밀번호 불일치 시 오류 메시지 표시 확인 (SC-03 E-01)
+- [x] 수정 성공 후 "수정이 완료되었습니다." 메시지 표시 확인
+- [x] "회원 탈퇴" 버튼 클릭 시 경고 메시지 + 비밀번호 재입력 `ConfirmDialog` 표시 확인 (SC-04 기본 흐름 2~3단계)
+- [x] 탈퇴 확인 후 `clearAuth()` 호출 + `/auth`로 이동 확인 (UC-14)
+- [x] 비밀번호 불일치 시 탈퇴 불가 오류 메시지 표시 확인 (SC-04 E-01)
 
 ---
 
 ### FE-17. 반응형 UI 점검 및 최종 통합 확인
+
 **설명**: PC(1280px 이상)와 모바일 웹(375px~768px) 환경에서 모든 화면의 레이아웃과 주요 시나리오(SC-01~SC-11)를 브라우저에서 수동으로 검증한다.  
 **산출물**: 반응형 CSS 조정 완료, 수동 QA 체크리스트 완료  
 **의존성**: FE-09, FE-11, FE-13, FE-14, FE-15, FE-16
 
 #### 완료 조건
-- [ ] PC(1280px) — 모든 화면 레이아웃 깨짐 없음 확인
-- [ ] 모바일(375px) — 네비게이션 바, 카드, 필터 바, 폼, 모달 세로 스크롤로 정상 사용 확인
-- [ ] SC-01(회원가입) → SC-02(로그인) → SC-05(카테고리 등록 + 할일 등록) 전체 흐름 브라우저 실행 오류 없음 확인
-- [ ] SC-07(카테고리 삭제 → 할일이 "일반"으로 이동) 흐름 브라우저 확인
-- [ ] SC-10(필터 3개 동시 적용 + 초기화) 흐름 브라우저 확인
-- [ ] SC-04(회원 탈퇴 후 재로그인 불가) 흐름 브라우저 확인
-- [ ] 페이지 새로고침 후 로그인 화면으로 리다이렉트 확인 (Refresh Token 메모리 저장 정책)
-- [ ] Access Token 만료 시나리오 — 개발자도구에서 만료 토큰 교체 후 API 요청 시 자동 갱신 + 정상 응답 확인 (SC-02 E-02)
-- [ ] 모든 CTA 버튼의 터치 영역이 모바일에서 최소 44×44px 이상 확인
+
+- [x] PC(1280px) — 모든 화면 레이아웃 깨짐 없음 확인
+- [x] 모바일(375px) — 네비게이션 바, 카드, 필터 바, 폼, 모달 세로 스크롤로 정상 사용 확인
+- [x] SC-01(회원가입) → SC-02(로그인) → SC-05(카테고리 등록 + 할일 등록) 전체 흐름 브라우저 실행 오류 없음 확인
+- [x] SC-07(카테고리 삭제 → 할일이 "일반"으로 이동) 흐름 브라우저 확인
+- [x] SC-10(필터 3개 동시 적용 + 초기화) 흐름 브라우저 확인
+- [x] SC-04(회원 탈퇴 후 재로그인 불가) 흐름 브라우저 확인
+- [x] 페이지 새로고침 후 로그인 화면으로 리다이렉트 확인 (Refresh Token 메모리 저장 정책)
+- [x] Access Token 만료 시나리오 — 개발자도구에서 만료 토큰 교체 후 API 요청 시 자동 갱신 + 정상 응답 확인 (SC-02 E-02)
+- [x] 모든 CTA 버튼의 터치 영역이 모바일에서 최소 44×44px 이상 확인

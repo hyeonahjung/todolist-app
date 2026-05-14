@@ -2,6 +2,7 @@
 
 const path = require('path');
 const express = require('express');
+const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require(path.join(__dirname, '../swagger/swagger.json'));
 const AppError = require('./errors/AppError');
@@ -12,6 +13,7 @@ const todoRoutes = require('./routes/todo.routes');
 
 const app = express();
 
+app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

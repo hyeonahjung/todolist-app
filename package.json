@@ -9,12 +9,15 @@
   },
   "jest": {
     "testEnvironment": "node",
-    "testMatch": ["**/__tests__/**/*.test.js"],
+    "testMatch": [
+      "**/__tests__/**/*.test.js"
+    ],
     "verbose": true,
     "forceExit": true
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "joi": "^18.2.1",
@@ -22,6 +25,7 @@
     "nodemon": "^3.1.14",
     "openapi-mock-express-middleware": "^4.4.0",
     "pg": "^8.20.0",
+    "playwright": "^1.60.0",
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
