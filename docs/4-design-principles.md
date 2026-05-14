@@ -1,7 +1,8 @@
 # 프로젝트 구조 설계 원칙 - TodoListApp
 
-**버전**: 1.0
-**작성일**: 2026-05-13
+**버전**: 1.2
+**작성일**: 2026-05-13  
+**최종 수정**: 2026-05-14 — 실제 구현 반영: 백엔드 디렉토리 구조(`src/` → `backend/` 직접), `.env` 단일 Connection String, `refreshToken.repository.js` 제거 명시
 **참조 문서**:
 - [도메인 정의서 v1.0](./1-domain-definition.md)
 - [PRD v1.1](./2-prd.md)
@@ -282,16 +283,16 @@ GET /api/todos?categoryId=3&isCompleted=false&dueDateFrom=2026-05-13&dueDateTo=2
 #### 백엔드
 
 ```
-src/
+backend/
   services/
     todo.service.js
-  __tests__/
-    unit/
-      todo.service.test.js       ← 서비스 단위 테스트
-      category.service.test.js
-    integration/
-      todo.routes.test.js        ← API 통합 테스트
-      auth.routes.test.js
+__tests__/
+  unit/
+    todo.service.test.js         ← 서비스 단위 테스트
+    category.service.test.js
+  integration/
+    todo.routes.test.js          ← API 통합 테스트
+    auth.routes.test.js
 ```
 
 - 테스트 파일은 대상 파일과 동일한 이름에 `.test.js` 접미사 사용
@@ -362,12 +363,8 @@ export interface Todo {
 PORT=3000
 NODE_ENV=development
 
-# 데이터베이스
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=todolist_db
-DB_USER=postgres
-DB_PASSWORD=your_password
+# 데이터베이스 (단일 Connection String)
+POSTGRES_CONNECTION_STRING=postgresql://postgres:{비밀번호}@localhost:5432/todolist
 
 # JWT
 JWT_ACCESS_SECRET=your_access_secret_min_32_chars
@@ -383,7 +380,7 @@ BCRYPT_SALT_ROUNDS=10
 
 - `.env` 파일은 `.gitignore`에 반드시 추가한다.
 - `.env.example` 파일을 함께 제공하여 필요한 환경변수 목록을 문서화한다. (실제 값 제외)
-- 환경변수는 `process.env`로 직접 접근하지 않고 `config/env.js` (또는 `config/env.ts`) 파일에서 한 번 읽어 유효성 검사 후 export한다.
+- 환경변수는 `process.env`로 직접 접근하지 않고 `config/env.js` 파일에서 한 번 읽어 유효성 검사 후 export한다.
 - 클라이언트(프론트엔드)에서는 `VITE_` 접두사가 붙은 환경변수만 사용하며, 시크릿 정보는 절대 포함하지 않는다.
 
 ### 5-2. JWT 토큰 처리 원칙
@@ -513,57 +510,51 @@ class AppError extends Error {
 
 ```
 backend/
-├── .env                          # 환경변수 (gitignore 대상)
-├── .env.example                  # 환경변수 템플릿
-├── package.json
+├── app.js                        # Express 앱 설정 (미들웨어, 라우터 등록)
 ├── server.js                     # HTTP 서버 시작점 (app.js import 후 listen)
-└── src/
-    ├── app.js                    # Express 앱 설정 (미들웨어, 라우터 등록)
-    ├── config/
-    │   ├── env.js                # 환경변수 로드 및 유효성 검사
-    │   └── db.js                 # pg Pool 생성 및 export
-    │
-    ├── routes/
-    │   ├── index.js              # 전체 라우터 취합 (/api 접두사 적용)
-    │   ├── auth.routes.js        # POST /auth/register, /auth/login, /auth/logout, /auth/refresh
-    │   ├── user.routes.js        # GET|PATCH|DELETE /users/me
-    │   ├── category.routes.js    # GET|POST /categories, PATCH|DELETE /categories/:categoryId
-    │   └── todo.routes.js        # GET|POST /todos, GET|PATCH|DELETE /todos/:todoId, PATCH /todos/:todoId/completion
-    │
-    ├── controllers/
-    │   ├── auth.controller.js    # register, login, logout, refreshToken
-    │   ├── user.controller.js    # getMe, updateMe, deleteMe
-    │   ├── category.controller.js # getCategories, createCategory, updateCategory, deleteCategory
-    │   └── todo.controller.js    # getTodos, createTodo, getTodoById, updateTodo, deleteTodo, toggleCompletion
-    │
-    ├── services/
-    │   ├── auth.service.js       # 회원가입(bcrypt 암호화), 로그인 검증, JWT 발급/폐기
-    │   ├── user.service.js       # 개인정보 수정(비밀번호 확인), 회원 탈퇴(트랜잭션)
-    │   ├── category.service.js   # 카테고리 CRUD, is_default 보호, 삭제 시 할일 이동 트랜잭션
-    │   └── todo.service.js       # 할일 CRUD, 소유권 검증(BR-02), 완료 토글, 필터 조회
-    │
-    ├── repositories/
-    │   ├── user.repository.js    # findUserByEmail, findUserById, createUser, updateUser, deleteUser
-    │   ├── category.repository.js # findCategoriesByUserId, findCategoryById, createCategory, updateCategory, deleteCategory, moveTodosToDefault
-    │   ├── todo.repository.js    # findTodosByUserId(필터 지원), findTodoById, createTodo, updateTodo, deleteTodo, deleteTodosByUserId
-    │   └── refreshToken.repository.js # createRefreshToken, findRefreshToken, deleteRefreshToken, deleteAllByUserId
-    │
-    ├── middlewares/
-    │   ├── authenticate.middleware.js  # JWT 검증, req.user 설정
-    │   └── validate.middleware.js      # Joi/자체 스키마 기반 요청 유효성 검사
-    │
-    ├── schemas/                  # 유효성 검사 스키마 (PRD 3.2 기준)
-    │   ├── auth.schema.js        # 회원가입/로그인 입력 규칙
-    │   ├── user.schema.js        # 개인정보 수정 입력 규칙
-    │   ├── category.schema.js    # 카테고리명 입력 규칙
-    │   └── todo.schema.js        # 할일 등록/수정 입력 규칙
-    │
-    ├── errors/
-    │   └── AppError.js           # 커스텀 에러 클래스 (statusCode, code, message)
-    │
-    └── utils/
-        ├── jwt.util.js           # signAccessToken, signRefreshToken, verifyToken
-        └── hash.util.js          # hashPassword, comparePassword (bcrypt 래핑)
+├── config/
+│   ├── env.js                    # 환경변수 로드 및 유효성 검사
+│   └── db.js                     # pg Pool 생성 및 export
+│
+├── routes/
+│   ├── auth.routes.js            # POST /api/auth/register, /login, /logout, /refresh
+│   ├── user.routes.js            # GET|PATCH|DELETE /api/users/me
+│   ├── category.routes.js        # GET|POST /api/categories, PATCH|DELETE /api/categories/:categoryId
+│   └── todo.routes.js            # GET|POST /api/todos, GET|PATCH|DELETE /api/todos/:todoId, PATCH /api/todos/:todoId/completion
+│
+├── controllers/
+│   ├── auth.controller.js        # register, login, logout, refreshToken
+│   ├── user.controller.js        # getMe, updateMe, deleteMe
+│   ├── category.controller.js    # getCategories, createCategory, updateCategory, deleteCategory
+│   └── todo.controller.js        # getTodos, createTodo, getTodoById, updateTodo, deleteTodo, toggleCompletion
+│
+├── services/
+│   ├── auth.service.js           # 회원가입(bcrypt 암호화), 로그인 검증, JWT 발급
+│   ├── user.service.js           # 개인정보 수정(비밀번호 확인), 회원 탈퇴(트랜잭션)
+│   ├── category.service.js       # 카테고리 CRUD, is_default 보호, 삭제 시 할일 이동(ON DELETE SET DEFAULT)
+│   └── todo.service.js           # 할일 CRUD, 소유권 검증(BR-02), 완료 토글, 필터 조회
+│
+├── repositories/
+│   ├── user.repository.js        # findByEmail, findById, findByIdWithPassword, create, updateById, deleteByIdTransactional
+│   ├── category.repository.js    # findAll, findById, create, updateById, deleteById
+│   └── todo.repository.js        # findAll(필터 지원), findById, create, updateById, deleteById, toggleCompletion
+│
+├── middlewares/
+│   ├── authenticate.middleware.js  # JWT 검증, req.user 설정
+│   └── validate.middleware.js      # Joi 스키마 기반 요청 유효성 검사
+│
+├── schemas/                      # 유효성 검사 스키마 (PRD 3.2 기준)
+│   ├── auth.schema.js            # 회원가입/로그인 입력 규칙
+│   ├── user.schema.js            # 개인정보 수정 입력 규칙
+│   ├── category.schema.js        # 카테고리명 입력 규칙
+│   └── todo.schema.js            # 할일 등록/수정 입력 규칙
+│
+├── errors/
+│   └── AppError.js               # 커스텀 에러 클래스 (statusCode, code, message)
+│
+└── utils/
+    ├── jwt.util.js               # signAccessToken, signRefreshToken, verifyToken
+    └── hash.util.js              # hashPassword, comparePassword (bcrypt 래핑)
 
 __tests__/
 ├── fixtures/
@@ -578,17 +569,19 @@ __tests__/
     └── category.routes.test.js
 ```
 
+> **Refresh Token 저장 정책**: Refresh Token은 클라이언트 Zustand 메모리에만 저장하며 서버 DB에 별도 저장하지 않는다. 따라서 `refreshToken.repository.js`는 존재하지 않는다.
+
 **주요 디렉토리 / 파일 역할 설명**
 
 | 경로 | 역할 |
 |------|------|
-| `src/config/db.js` | `pg.Pool` 인스턴스를 싱글턴으로 생성하고 export. 모든 Repository가 이 Pool을 import하여 사용 |
-| `src/routes/index.js` | 모든 도메인 라우터를 `/api` 접두사 아래 취합. `app.js`에서 한 번만 등록 |
-| `src/middlewares/authenticate.middleware.js` | Authorization 헤더의 Bearer 토큰 검증 후 `req.user`에 `{ userId, email }` 주입 |
-| `src/services/category.service.js` | 삭제 시 트랜잭션(할일 이동 → 카테고리 삭제)을 `db.js`의 Pool 클라이언트로 직접 조율 |
-| `src/services/user.service.js` | 회원 탈퇴 시 Todo → Category → refreshToken → User 순서로 삭제하는 트랜잭션 처리 |
-| `src/repositories/todo.repository.js` | `findTodosByUserId`는 `categoryId`, `isCompleted`, `dueDateFrom`, `dueDateTo` 파라미터를 받아 동적 WHERE 절 생성 |
-| `src/errors/AppError.js` | 모든 Service/Repository에서 예외 발생 시 이 클래스를 사용. 전역 에러 핸들러가 statusCode를 참조하여 응답 |
+| `backend/config/db.js` | `pg.Pool` 인스턴스를 싱글턴으로 생성하고 export. 모든 Repository가 이 Pool을 import하여 사용 |
+| `backend/app.js` | 모든 도메인 라우터를 `/api` 접두사 아래 직접 등록. Swagger UI(`/api-docs`), 요청 로거, 404/에러 핸들러 포함 |
+| `backend/middlewares/authenticate.middleware.js` | Authorization 헤더의 Bearer 토큰 검증 후 `req.user`에 `{ userId, email }` 주입 |
+| `backend/services/category.service.js` | 카테고리 삭제 시 DB ON DELETE SET DEFAULT 정책으로 할일이 "일반" 카테고리로 자동 이동 |
+| `backend/services/user.service.js` | 회원 탈퇴 시 트랜잭션으로 User를 삭제하면 ON DELETE CASCADE로 연관 Category·Todo 전체 삭제 |
+| `backend/repositories/todo.repository.js` | `findAll`은 `categoryId`, `isCompleted`, `dueDateFrom`, `dueDateTo` 파라미터를 받아 동적 WHERE 절 생성 |
+| `backend/errors/AppError.js` | 모든 Service/Repository에서 예외 발생 시 이 클래스를 사용. 전역 에러 핸들러가 statusCode를 참조하여 응답 |
 
 ---
 
