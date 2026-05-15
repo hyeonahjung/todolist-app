@@ -1,7 +1,10 @@
 'use strict';
 
-const app = require('./app');
+process.stdout.setEncoding('utf8');
+process.stderr.setEncoding('utf8');
+
 const env = require('./config/env');
+const app = require('./app');
 
 require('./config/db');
 

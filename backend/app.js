@@ -13,7 +13,8 @@ const todoRoutes = require('./routes/todo.routes');
 
 const app = express();
 
-const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
+const corsOrigin = (process.env.CORS_ORIGIN || 'http://localhost:5173').trim();
+console.log(`[CORS] Allowed origin: ${corsOrigin}`);
 app.use(cors({ origin: corsOrigin, credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -50,7 +51,7 @@ app.use((_req, _res, next) => {
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, _next) => {
   if (err instanceof AppError) {
-    console.warn(`[${new Date().toISOString()}] [WARN] ${req.method} ${req.originalUrl} → ${err.statusCode} ${err.code}: ${err.message}`);
+    console.warn(`[${new Date().toISOString()}] [WARN] ${req.method} ${req.originalUrl} ${err.statusCode} ${err.code}`);
     const body = { success: false, error: { code: err.code, message: err.message, ...(err.details ? { details: err.details } : {}) } };
     return res.status(err.statusCode).json(body);
   }
@@ -61,7 +62,7 @@ app.use((err, req, res, _next) => {
     success: false,
     error: {
       code: 'INTERNAL_ERROR',
-      message: '서버 내부 오류가 발생했습니다.',
+      message: 'Internal server error',
       ...(isProd ? {} : { stack: err.stack }),
     },
   };
