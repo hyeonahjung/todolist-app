@@ -168,7 +168,7 @@ export const translations: Record<Language, TranslationSet> = {
       language: '언어',
     },
     auth: {
-      title: 'TodoListApp',
+      title: '할일 목록 앱',
       loginTab: '로그인',
       registerTab: '회원가입',
       email: '이메일',
@@ -325,7 +325,7 @@ export const translations: Record<Language, TranslationSet> = {
       language: 'Language',
     },
     auth: {
-      title: 'TodoListApp',
+      title: '할일 목록 앱',
       loginTab: 'Login',
       registerTab: 'Register',
       email: 'Email',
@@ -482,7 +482,7 @@ export const translations: Record<Language, TranslationSet> = {
       language: '语言',
     },
     auth: {
-      title: 'TodoListApp',
+      title: '할일 목록 앱',
       loginTab: '登录',
       registerTab: '注册',
       email: '电子邮件',
@@ -639,7 +639,7 @@ export const translations: Record<Language, TranslationSet> = {
       language: '言語',
     },
     auth: {
-      title: 'TodoListApp',
+      title: '할일 목록 앱',
       loginTab: 'ログイン',
       registerTab: '新規登録',
       email: 'メールアドレス',
@@ -796,7 +796,7 @@ export const translations: Record<Language, TranslationSet> = {
       language: 'Idioma',
     },
     auth: {
-      title: 'TodoListApp',
+      title: '할일 목록 앱',
       loginTab: 'Iniciar Sesión',
       registerTab: 'Registrarse',
       email: 'Correo Electrónico',
