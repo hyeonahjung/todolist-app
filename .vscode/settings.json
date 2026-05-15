@@ -5,5 +5,7 @@
       "args": ["-NoExit", "-Command", "[Console]::InputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; chcp 65001 | Out-Null"]
     }
   },
-  "terminal.integrated.defaultProfile.windows": "PowerShell"
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.fontFamily": "Consolas, 'Malgun Gothic', monospace",
+  "terminal.integrated.fontSize": 14
 }
