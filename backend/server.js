@@ -8,6 +8,10 @@ const app = require('./app');
 
 require('./config/db');
 
-app.listen(env.PORT, () => {
-  console.log(`Server running on port ${env.PORT}`);
-});
+if (require.main === module) {
+  app.listen(env.PORT, () => {
+    console.log(`Server running on port ${env.PORT}`);
+  });
+}
+
+module.exports = app;
