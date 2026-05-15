@@ -40,7 +40,7 @@ app.use((req, res, next) => {
 });
 
 app.get('/health', (_req, res) => {
-  res.json({ success: true, data: { status: 'ok' } });
+  res.json({ success: true, data: { status: 'ok', corsOrigin } });
 });
 
 const swaggerRouter = express.Router();
